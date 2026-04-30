@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I Miei Turni</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root {
+  --bg: #F2F2F7; --card: #FFFFFF; --text: #1C1C1E; --text-secondary: #8E8E93;
+  --primary: #0A84FF; --green: #30D158; --orange: #FF9F0A; --red: #FF453A;
+  --purple: #AF52DE; --border: #E5E5EA; --shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 24px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+h1 { font-size: 28px; font-weight: 700; }
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--card); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); text-align: center; }
+.stat-value { font-size: 32px; font-weight: 700; margin-bottom: 4px; }
+.stat-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; }
+.card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 16px; }
+.servizio-item {
+  padding: 16px; border: 1px solid var(--border); border-radius: 12px;
+  margin-bottom: 12px; transition: all 0.2s;
+}
+.servizio-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+.servizio-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.servizio-meta { font-size: 13px; color: var(--text-secondary); display: flex; gap: 16px; flex-wrap: wrap; }
+.badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; text-transform: uppercase; }
+.badge-green { background: rgba(48,209,88,0.1); color: var(--green); }
+.badge-orange { background: rgba(255,159,10,0.1); color: var(--orange); }
+.badge-blue { background: rgba(10,132,255,0.1); color: var(--primary); }
+.btn {
+  background: var(--primary); color: white; border: none; padding: 10px 16px;
+  border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { opacity: 0.85; }
+.btn-success { background: var(--green); }
+.btn-secondary { background: var(--bg); color: var(--text); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.empty { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>I Miei Turni</h1>
+  <button class="btn" onclick="generaAttestatoAnnuale()" style="background:var(--purple)">
+    📜 Attestato Annuale
+  </button>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-value" id="statTotale">0</div>
+    <div class="stat-label">Servizi Totali</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="statOre">0h</div>
+    <div class="stat-label">Ore Totali</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="statAnno">0</div>
+    <div class="stat-label">Quest'Anno</div>
+  </div>
+</div>
+
+<div class="card">
+  <h3 style="margin-bottom:16px">Prossimi Servizi</h3>
+  <div id="prossimiServizi"></div>
+</div>
+
+<div class="card">
+  <h3 style="margin-bottom:16px">Servizi Svolti</h3>
+  <div id="serviziSvolti"></div>
+</div>
+
+<script>
+const session = JSON.parse(localStorage.getItem('pc_session') || 'null');
+if (!session || session.ruolo !== 'volontario') {
+  document.body.innerHTML = '<div style="text-align:center;padding:60px;color:var(--text-secondary)">Accesso riservato ai volontari</div>';
+  throw new Error('Access denied');
+}
+
+let dbServizi = JSON.parse(localStorage.getItem('pc_servizi_v3') || '[]');
+let dbPresenze = JSON.parse(localStorage.getItem('pc_presenze') || '[]');
+let dbVolontari = JSON.parse(localStorage.getItem('pc_volontari_v4') || '[]');
+
+const mansioniLabels = {
+  monitoraggio: 'Monitoraggio', evento_sportivo: 'Evento Sportivo',
+  assistenza_popolazione: 'Assistenza', manutenzione: 'Manutenzione',
+  riunione: 'Riunione', emergenza_meteo: 'Emergenza Meteo',
+  viabilita: 'Viabilità', esercitazione: 'Esercitazione',
+  accesso_eventi: 'Accesso Eventi', altro: 'Altro'
+};
+
+function renderMieiTurni() {
+  const mieiServizi = dbServizi.filter(s => s.volontari.includes(session.volontarioId));
+  const oggi = new Date();
+  const annoCorrente = oggi.getFullYear();
+
+  // Stats
+  document.getElementById('statTotale').textContent = mieiServizi.length;
+  
+  const oreTotali = mieiServizi.reduce((sum, s) => {
+    return sum + (new Date(s.dataFine) - new Date(s.dataInizio)) / (1000 * 60 * 60);
+  }, 0);
+  document.getElementById('statOre').textContent = Math.round(oreTotali) + 'h';
+
+  const serviziAnno = mieiServizi.filter(s => new Date(s.dataInizio).getFullYear() === annoCorrente);
+  document.getElementById('statAnno').textContent = serviziAnno.length;
+
+  // Prossimi servizi
+  const prossimi = mieiServizi
+    .filter(s => new Date(s.dataInizio) >= oggi)
+    .sort((a,b) => new Date(a.dataInizio) - new Date(b.dataInizio));
+
+  const containerProssimi = document.getElementById('prossimiServizi');
+  if (prossimi.length === 0) {
+    containerProssimi.innerHTML = '<div class="empty">Nessun servizio programmato</div>';
+  } else {
+    containerProssimi.innerHTML = prossimi.map(s => {
+      const dataInizio = new Date(s.dataInizio);
+      const dataFine = new Date(s.dataFine);
+      const ore = ((dataFine - dataInizio) / (1000 * 60 * 60)).toFixed(1);
+      const giaFirmato = dbPresenze.some(p => p.servizioId === s.id && p.volontarioId === session.volontarioId);
+
+      return `
+        <div class="servizio-item">
+          <div class="servizio-header">
+            <div>
+              <div class="servizio-title">${s.titolo}</div>
+              <div class="servizio-meta">
+                <span>📅 ${dataInizio.toLocaleDateString('it-IT')} ${dataInizio.toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</span>
+                <span>⏱️ ${ore}h</span>
+                <span>📍 ${s.luogo || 'N/D'}</span>
+                <span>🏷️ ${mansioniLabels[s.mansione]}</span>
+              </div>
+            </div>
+            <span class="badge badge-blue">Programmato</span>
+          </div>
+          ${dataInizio <= oggi? `
+            <button class="btn ${giaFirmato? 'btn-success' : ''}" 
+                    onclick="firmaPresenza(${s.id})" 
+                    ${giaFirmato? 'disabled' : ''}>
+              ${giaFirmato? '✓ Presenza Firmata' : '✍️ Firma Presenza'}
+            </button>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Servizi svolti
+  const svolti = mieiServizi
+    .filter(s => new Date(s.dataFine) < oggi)
+    .sort((a,b) => new Date(b.dataInizio) - new Date(a.dataInizio));
+
+  const containerSvolti = document.getElementById('serviziSvolti');
+  if (svolti.length === 0) {
+    containerSvolti.innerHTML = '<div class="empty">Nessun servizio svolto</div>';
+  } else {
+    containerSvolti.innerHTML = svolti.map(s => {
+      const dataInizio = new Date(s.dataInizio);
+      const dataFine = new Date(s.dataFine);
+      const ore = ((dataFine - dataInizio) / (1000 * 60 * 60)).toFixed(1);
+      const pres = dbPresenze.find(p => p.servizioId === s.id && p.volontarioId === session.volontarioId);
+
+      return `
+        <div class="servizio-item">
+          <div class="servizio-header">
+            <div>
+              <div class="servizio-title">${s.titolo}</div>
+              <div class="servizio-meta">
+                <span>📅 ${dataInizio.toLocaleDateString('it-IT')}</span>
+                <span>⏱️ ${ore}h</span>
+                <span>🏷️ ${mansioniLabels[s.mansione]}</span>
+              </div>
+            <span class="badge badge-green">Completato</span>
+          </div>
+          ${pres? `
+            <button class="btn btn-secondary" onclick="stampaAttestato(${s.id})">
+              📄 Scarica Attestato
+            </button>
+          ` : '<span style="color:var(--text-secondary);font-size:13px">Presenza non firmata</span>'}
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+window.firmaPresenza = function(servizioId) {
+  const servizio = dbServizi.find(s => s.id === servizioId);
+  if (!servizio) return;
+
+  const giaFirmato = dbPresenze.some(p => p.servizioId === servizioId && p.volontarioId === session.volontarioId);
+  if (giaFirmato) {
+    alert('Hai già firmato la presenza per questo servizio');
+    return;
+  }
+
+  dbPresenze.push({
+    servizioId: servizioId,
+    volontarioId: session.volontarioId,
+    volontarioNome: session.nome,
+    timestamp: new Date().toISOString()
+  });
+
+  localStorage.setItem('pc_presenze', JSON.stringify(dbPresenze));
+  renderMieiTurni();
+  alert('Presenza firmata con successo!');
+}
+
+window.stampaAttestato = function(servizioId) {
+  const s = dbServizi.find(srv => srv.id === servizioId);
+  if (!s) return;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const dataInizio = new Date(s.dataInizio);
+  const dataFine = new Date(s.dataFine);
+  const ore = ((dataFine - dataInizio) / (1000 * 60 * 60)).toFixed(1);
+
+  // Logo
+  doc.addImage('https://i.imgur.com/8RvEWed.png', 'PNG', 85, 10, 40, 40);
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.text('ASSOCIAZIONE RADIO C.B. LUNIGIANA - OdV', 105, 60, { align: 'center' });
+  doc.setFontSize(11);
+  doc.setFont(undefined, 'normal');
+  doc.text('Protezione Civile', 105, 67, { align: 'center' });
+
+  doc.setFontSize(18);
+  doc.setFont(undefined, 'bold');
+  doc.text('ATTESTATO DI SERVIZIO', 105, 85, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+  let y = 105;
+  doc.text('Si attesta che il volontario', 105, y, { align: 'center' });
+  
+  y += 12;
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text(session.nome.toUpperCase(), 105, y, { align: 'center' });
+  
+  y += 12;
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+  doc.text('ha prestato servizio presso questa Associazione', 105, y, { align: 'center' });
+  
+  y += 15;
+  doc.setFont(undefined, 'bold');
+  doc.text(s.titolo, 105, y, { align: 'center' });
+  
+  y += 12;
+  doc.setFont(undefined, 'normal');
+  doc.text(`Mansione: ${mansioniLabels[s.mansione]}`, 105, y, { align: 'center' });
+  y += 8;
+  doc.text(`Data: ${dataInizio.toLocaleDateString('it-IT')}`, 105, y, { align: 'center' });
+  y += 8;
+  doc.text(`Durata: ${ore} ore`, 105, y, { align: 'center' });
+  y += 8;
+  doc.text(`Ambito: ${s.ambito}`, 105, y, { align: 'center' });
+
+  y += 25;
+  doc.line(30, y, 80, y);
+  doc.line(130, y, 180, y);
+  y += 6;
+  doc.setFontSize(10);
+  doc.text('Il Coordinatore', 55, y, { align: 'center' });
+  doc.text('Il Responsabile', 155, y, { align: 'center' });
+
+  doc.setFontSize(8);
+  doc.text(`Rilasciato il ${new Date().toLocaleDateString('it-IT')}`, 105, 280, { align: 'center' });
+
+  doc.save(`Attestato_${s.titolo.replace(/\s/g, '_')}.pdf`);
+}
+
+window.generaAttestatoAnnuale = function() {
+  const anno = new Date().getFullYear();
+  const serviziAnno = dbServizi.filter(s => 
+    s.volontari.includes(session.volontarioId) && 
+    new Date(s.dataInizio).getFullYear() === anno
+  );
+
+  if (serviziAnno.length === 0) {
+    alert('Nessun servizio svolto nel ' + anno);
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const oreTotali = serviziAnno.reduce((sum, s) => {
+    return sum + (new Date(s.dataFine) - new Date(s.dataInizio)) / (1000 * 60 * 60);
+  }, 0).toFixed(1);
+
+  // Logo
+  doc.addImage('https://i.imgur.com/8RvEWed.png', 'PNG', 85, 10, 40, 40);
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.text('ASSOCIAZIONE RADIO C.B. LUNIGIANA - OdV', 105, 60, { align: 'center' });
+  doc.setFontSize(11);
+  doc.setFont(undefined, 'normal');
+  doc.text('Protezione Civile', 105, 67, { align: 'center' });
+
+  doc.setFontSize(18);
+  doc.setFont(undefined, 'bold');
+  doc.text('ATTESTATO ANNUALE DI SERVIZIO', 105, 85, { align: 'center' });
+  doc.setFontSize(14);
+  doc.text(`ANNO ${anno}`, 105, 95, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+  let y = 115;
+  doc.text('Si attesta che il volontario', 105, y, { align: 'center' });
+  
+  y += 12;
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text(session.nome.toUpperCase(), 105, y, { align: 'center' });
+  
+  y += 12;
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+  doc.text('ha prestato servizio presso questa Associazione', 105, y, { align: 'center' });
+  
+  y += 15;
+  doc.setFont(undefined, 'bold');
+  doc.text(`Totale Servizi: ${serviziAnno.length}`, 105, y, { align: 'center' });
+  y += 8;
+  doc.text(`Totale Ore: ${oreTotali} ore`, 105, y, { align: 'center' });
+
+  y += 15;
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'normal');
+  doc.text('Dettaglio Servizi:', 20, y);
+  y += 8;
+  
+  serviziAnno.slice(0, 10).forEach(s => {
+    const data = new Date(s.dataInizio).toLocaleDateString('it-IT');
+    doc.text(`• ${data} - ${s.titolo}`, 25, y);
+    y += 6;
+    if (y > 250) {
+      doc.addPage();
+      y = 30;
+    }
+  });
+
+  y = 250;
+  doc.line(30, y, 80, y);
+  doc.line(130, y, 180, y);
+  y += 6;
+  doc.setFontSize(10);
+  doc.text('Il Coordinatore', 55, y, { align: 'center' });
+  doc.text('Il Responsabile', 155, y, { align: 'center' });
+
+  // QR Code
+  const qrDiv = document.createElement('div');
+  new QRCode(qrDiv, {
+    text: `Attestato ${session.nome} - ${anno} - ${serviziAnno.length} servizi`,
+    width: 40, height: 40
+  });
+  setTimeout(() => {
+    const qrImg = qrDiv.querySelector('img');
+    if (qrImg) {
+      doc.addImage(qrImg.src, 'PNG', 85, 260, 40, 40);
+    }
+    doc.setFontSize(8);
+    doc.text(`Rilasciato il ${new Date().toLocaleDateString('it-IT')}`, 105, 285, { align: 'center' });
+    doc.save(`Attestato_Annuale_${anno}_${session.nome.replace(/\s/g, '_')}.pdf`);
+  }, 500);
+}
+
+renderMieiTurni();
+</script>
+
+</body>
+</html>
