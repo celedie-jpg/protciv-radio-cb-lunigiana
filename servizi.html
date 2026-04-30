@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Servizi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --bg: #F2F2F7; --card: #FFFFFF; --text: #1C1C1E; --text-secondary: #8E8E93;
+  --primary: #0A84FF; --green: #30D158; --orange: #FF9F0A; --red: #FF453A;
+  --purple: #AF52DE; --border: #E5E5EA; --shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 24px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+h1 { font-size: 28px; font-weight: 700; }
+.btn {
+  background: var(--primary); color: white; border: none; padding: 12px 20px;
+  border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer;
+  transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+}
+.btn:hover { opacity: 0.85; }
+.btn-secondary { background: var(--bg); color: var(--text); }
+.card {
+  background: var(--card); border-radius: 16px; padding: 24px;
+  box-shadow: var(--shadow); margin-bottom: 16px;
+}
+.servizio-item {
+  padding: 16px; border: 1px solid var(--border); border-radius: 12px;
+  margin-bottom: 12px; transition: all 0.2s;
+}
+.servizio-item:hover { border-color: var(--primary); background: rgba(10,132,255,0.02); }
+.servizio-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+.servizio-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.servizio-meta { font-size: 13px; color: var(--text-secondary); display: flex; gap: 16px; flex-wrap: wrap; }
+.badge {
+  display: inline-block; padding: 4px 10px; border-radius: 6px;
+  font-size: 11px; font-weight: 500; text-transform: uppercase;
+}
+.badge-green { background: rgba(48,209,88,0.1); color: var(--green); }
+.badge-orange { background: rgba(255,159,10,0.1); color: var(--orange); }
+.badge-blue { background: rgba(10,132,255,0.1); color: var(--primary); }
+.badge-purple { background: rgba(175,82,222,0.1); color: var(--purple); }
+.servizio-actions { display: flex; gap: 8px; margin-top: 12px; }
+.btn-small { padding: 8px 14px; font-size: 13px; border-radius: 8px; }
+.volontari-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.volontario-tag {
+  padding: 6px 12px; background: var(--bg); border-radius: 8px;
+  font-size: 13px; display: flex; align-items: center; gap: 6px;
+}
+.volontario-tag.presente { background: rgba(48,209,88,0.1); color: var(--green); }
+.btn-icon {
+  width: 28px; height: 28px; border-radius: 6px; border: none;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+}
+.btn-icon:hover { background: var(--bg); }
+.empty { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+.modal {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center;
+}
+.modal.show { display: flex; }
+.modal-content {
+  background: var(--card); border-radius: 20px; padding: 32px;
+  width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+}
+.modal-header { margin-bottom: 24px; }
+.modal-title { font-size: 20px; font-weight: 700; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 12px; border: 1px solid var(--border);
+  border-radius: 12px; font-size: 14px; font-family: inherit;
+}
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Servizi</h1>
+  <div style="display:flex;gap:8px">
+    <button class="btn" onclick="apriModalServizio()" data-admin="true">+ Nuovo Servizio</button>
+    <button class="btn btn-secondary" onclick="exportPresenzeCSV()" data-admin="true">📊 Export Presenze</button>
+    <button class="btn" onclick="exportAttestatiAnnuali()" style="background:var(--purple)" data-admin="true">📜 Attestati Annuali</button>
+  </div>
+</div>
+
+<div class="card">
+  <div id="serviziList"></div>
+</div>
+
+<!-- Modal Nuovo Servizio -->
+<div class="modal" id="modalServizio">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Nuovo Servizio</div>
+    </div>
+    <div class="form-group">
+      <label>Titolo *</label>
+      <input type="text" id="servTitolo" placeholder="Es: Monitoraggio Fiume">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data Inizio *</label>
+        <input type="datetime-local" id="servDataInizio">
+      </div>
+      <div class="form-group">
+        <label>Data Fine *</label>
+        <input type="datetime-local" id="servDataFine">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Mansione *</label>
+        <select id="servMansione">
+          <option value="monitoraggio">Monitoraggio</option>
+          <option value="evento_sportivo">Evento Sportivo</option>
+          <option value="assistenza_popolazione">Assistenza Popolazione</option>
+          <option value="manutenzione">Manutenzione</option>
+          <option value="riunione">Riunione</option>
+          <option value="emergenza_meteo">Emergenza Meteo</option>
+          <option value="viabilita">Viabilità</option>
+          <option value="esercitazione">Esercitazione</option>
+          <option value="accesso_eventi">Accesso Eventi</option>
+          <option value="altro">Altro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ambito</label>
+        <select id="servAmbito">
+          <option value="locale">Locale</option>
+          <option value="provinciale">Provinciale</option>
+          <option value="regionale">Regionale</option>
+          <option value="nazionale">Nazionale</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Luogo</label>
+      <input type="text" id="servLuogo" placeholder="Es: Piazza del Comune">
+    </div>
+    <div class="form-group">
+      <label>Volontari Richiesti</label>
+      <input type="number" id="servVolontariRichiesti" value="2" min="1">
+    </div>
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="servNote" placeholder="Note aggiuntive..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="chiudiModalServizio()">Annulla</button>
+      <button class="btn" onclick="salvaServizio()">Salva Servizio</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const session = JSON.parse(localStorage.getItem('pc_session') || 'null');
+let dbServizi = JSON.parse(localStorage.getItem('pc_servizi_v3') || '[]');
+let dbVolontari = JSON.parse(localStorage.getItem('pc_volontari_v4') || '[]');
+let dbPresenze = JSON.parse(localStorage.getItem('pc_presenze') || '[]');
+
+const mansioniLabels = {
+  monitoraggio: 'Monitoraggio', evento_sportivo: 'Evento Sportivo',
+  assistenza_popolazione: 'Assistenza', manutenzione: 'Manutenzione',
+  riunione: 'Riunione', emergenza_meteo: 'Emergenza Meteo',
+  viabilita: 'Viabilità', esercitazione: 'Esercitazione',
+  accesso_eventi: 'Accesso Eventi', altro: 'Altro'
+};
+
+if (session?.ruolo !== 'admin') {
+  document.querySelectorAll('[data-admin="true"]').forEach(el => el.style.display = 'none');
+}
+
+function renderServizi() {
+  let servizi = dbServizi;
+  
+  if (session?.ruolo === 'volontario') {
+    servizi = servizi.filter(s => s.volontari.includes(session.volontarioId));
+  }
+
+  servizi.sort((a,b) => new Date(b.dataInizio) - new Date(a.dataInizio));
+
+  const container = document.getElementById('serviziList');
+  if (servizi.length === 0) {
+    container.innerHTML = '<div class="empty">Nessun servizio trovato</div>';
+    return;
+  }
+
+  container.innerHTML = servizi.map(s => {
+    const dataInizio = new Date(s.dataInizio);
+    const dataFine = new Date(s.dataFine);
+    const ore = ((dataFine - dataInizio) / (1000 * 60 * 60)).toFixed(1);
+    const volontariNomi = s.volontari.map(vid => {
+      const v = dbVolontari.find(v => v.id === vid);
+      const pres = dbPresenze.find(p => p.servizioId === s.id && p.volontarioId === vid);
+      return v? `<span class="volontario-tag ${pres? 'presente' : ''}">${v.nome} ${pres? '✓' : ''}</span>` : '';
+    }).join('');
+
+    const statoBadge = dataInizio > new Date()? 'badge-blue' : 
+      dataFine < new Date()? 'badge-green' : 'badge-orange';
+    const statoLabel = dataInizio > new Date()? 'Programmato' : 
+      dataFine < new Date()? 'Completato' : 'In Corso';
+
+    return `
+      <div class="servizio-item">
+        <div class="servizio-header">
+          <div>
+            <div class="servizio-title">${s.titolo}</div>
+            <div class="servizio-meta">
+              <span>📅 ${dataInizio.toLocaleDateString('it-IT')} ${dataInizio.toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</span>
+              <span>⏱️ ${ore}h</span>
+              <span>📍 ${s.luogo || 'N/D'}</span>
+              <span>🏷️ ${mansioniLabels[s.mansione]}</span>
+            </div>
+          <span class="badge ${statoBadge}">${statoLabel}</span>
+        </div>
+        <div class="volontari-list">${volontariNomi || '<span style="color:var(--text-secondary);font-size:13px">Nessun volontario assegnato</span>'}</div>
+        <div class="servizio-actions">
+          ${session?.ruolo === 'admin'? `
+            <button class="btn btn-small btn-secondary" onclick="aggiungiVolontario(${s.id})">+ Volontario</button>
+            <button class="btn btn-small btn-secondary" onclick="stampaAttestato(${s.id})">📄 Attestato</button>
+            <button class="btn btn-small btn-secondary" onclick="eliminaServizio(${s.id})">🗑️ Elimina</button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function apriModalServizio() {
+  document.getElementById('modalServizio').classList.add('show');
+}
+
+function chiudiModalServizio() {
+  document.getElementById('modalServizio').classList.remove('show');
+}
+
+function salvaServizio() {
+  const titolo = document.getElementById('servTitolo').value.trim();
+  const dataInizio = document.getElementById('servDataInizio').value;
+  const dataFine = document.getElementById('servDataFine').value;
+  const mansione = document.getElementById('servMansione').value;
+  const ambito = document.getElementById('servAmbito').value;
+  const luogo = document.getElementById('servLuogo').value.trim();
+  const volontariRichiesti = parseInt(document.getElementById('servVolontariRichiesti').value);
+  const note = document.getElementById('servNote').value.trim();
+
+  if (!titolo ||!dataInizio ||!dataFine) {
+    alert('Compila tutti i campi obbligatori');
+    return;
+  }
+
+  const nuovoServizio = {
+    id: Date.now(),
+    titolo, dataInizio, dataFine, mansione, ambito, luogo,
+    volontariRichiesti, note, volontari: [], stato: 'programmato'
+  };
+
+  dbServizi.push(nuovoServizio);
+  localStorage.setItem('pc_servizi_v3', JSON.stringify(dbServizi));
+  chiudiModalServizio();
+  renderServizi();
+}
+
+function aggiungiVolontario(servizioId) {
+  const servizio = dbServizi.find(s => s.id === servizioId);
+  const volontariDisponibili = dbVolontari.filter(v => v.attivo &&!servizio.volontari.includes(v.id));
+  
+  if (volontariDisponibili.length === 0) {
+    alert('Nessun volontario disponibile');
+    return;
+  }
+
+  const nomi = volontariDisponibili.map((v, i) => `${i+1}. ${v.nome}`).join('\n');
+  const scelta = prompt(`Seleziona volontario:\n${nomi}`);
+  const idx = parseInt(scelta) - 1;
+  
+  if (idx >= 0 && idx < volontariDisponibili.length) {
+    servizio.volontari.push(volontariDisponibili[idx].id);
+    localStorage.setItem('pc_servizi_v3', JSON.stringify(dbServizi));
+    renderServizi();
+  }
+}
+
+function eliminaServizio(id) {
+  if (!confirm('Eliminare questo servizio?')) return;
+  dbServizi = dbServizi.filter(s => s.id!== id);
+  dbPresenze = dbPresenze.filter(p => p.servizioId!== id);
+  localStorage.setItem('pc_servizi_v3', JSON.stringify(dbServizi));
+  localStorage.setItem('pc_presenze', JSON.stringify(dbPresenze));
+  renderServizi();
+}
+
+// EXPORT PRESENZE CSV
+window.exportPresenzeCSV = function() {
+  let csv = 'Data,Servizio,Mansione,Volontario,Ore,Ambito\n';
+  
+  dbPresenze.forEach(p => {
+    const s = dbServizi.find(srv => srv.id === p.servizioId);
+    if (!s) return;
+    const ore = ((new Date(s.dataFine) - new Date(s.dataInizio)) / (1000 * 60 * 60)).toFixed(1);
+    csv += `"${new Date(s.dataInizio).toLocaleDateString('it-IT')}","${s.titolo}","${mansioniLabels[s.mansione]}","${p.volontarioNome}","${ore}","${s.ambito}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `presenze_radio_cb_lunigiana_${new Date().toISOString().split('T')[0]}.csv`;
+  link.click();
+}
+
+// ATTESTATO SINGOLO SERVIZIO
+window.stampaAttestato = function(servizioId) {
+  const s = dbServizi.find(srv => srv.id === servizioId);
+  if (!s || s.volontari.length === 0) {
+    alert('Nessun volontario assegnato a questo servizio');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  s.volontari.forEach((vid, idx) => {
+    if (idx > 0) doc.addPage();
+    
+    const v = dbVolontari.find(vol => vol.id === vid);
+    const dataInizio = new Date(s.dataInizio);
+    const dataFine = new Date(s.dataFine);
+    const ore = ((dataFine - dataInizio) / (1000 * 60 * 60)).toFixed(1);
+
+    // Header con logo
+    doc.addImage('https://i.imgur.com/8RvEWed.png', 'PNG', 85, 10, 40, 40);
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('ASSOCIAZIONE RADIO C.B. LUNIGIANA - OdV', 105, 60, { align: 'center' });
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'normal');
+    doc.text('Protezione Civile', 105, 67, { align: 'center' });
+
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text('ATTESTATO DI SERVIZIO', 105, 85, { align: 'center' });
+
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'normal');
+    let y = 105;
+    doc.text('Si attesta che il volontario', 105, y, { align: 'center' });
+    
+    y += 12;
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text(v.nome.toUpperCase(), 105, y, { align: 'center' });
+    
+    y += 12;
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'normal');
+    doc.text('ha prestato servizio presso questa Associazione', 105, y, { align: 'center' });
+    
+    y += 15;
+    doc.setFont(undefined, 'bold');
+    doc.text(s.titolo, 105, y, { align: 'center' });
+    
+    y += 12;
+    doc.setFont(undefined, 'normal');
+    doc.text(`Mansione: ${mansioniLabels[s.mansione]}`, 105, y, { align: 'center' });
+    y += 8;
+    doc.text(`Data: ${dataInizio.toLocaleDateString('it-IT')}`, 105, y, { align: 'center' });
+    y += 8;
+    doc.text(`Durata: ${ore} ore`, 105, y, { align: 'center' });
+    y += 8;
+    doc.text(`Ambito: ${s.ambito}`, 105, y, { align: 'center' });
+
+    y += 25;
+    doc.line(30, y, 80, y);
+    doc.line(130, y, 180, y);
+    y += 6;
+    doc.setFontSize(10);
+    doc.text('Il Coordinatore', 55, y, { align: 'center' });
+    doc.text('Il Responsabile', 155, y, { align: 'center' });
+
+    doc.setFontSize(8);
+    doc.text(`Rilasciato il ${new Date().toLocaleDateString('it-IT')}`, 105, 280, { align: 'center' });
+  });
+
+  doc.save(`Attestato_${s.titolo.replace(/\s/g, '_')}.pdf`);
+}
+
+// ATTESTATI ANNUALI TUTTI
+window.exportAttestatiAnnuali = function() {
+  alert('Funzione disponibile in "I Miei Turni" per ogni volontario. Qui puoi generare attestati singoli per servizio.');
+}
+
+renderServizi();
+</script>
+
+</body>
+</html>
