@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utenti - Radio C.B. Lunigiana</title>
+<style>
+:root {
+  --bg: #F2F2F7; --card: #FFFFFF; --text: #1C1C1E; --text-secondary: #8E8E93;
+  --primary: #0A84FF; --green: #30D158; --red: #FF453A; --border: #E5E5EA;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 24px; }
+.header { margin-bottom: 24px; }
+h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+.subtitle { font-size: 14px; color: var(--text-secondary); }
+.card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); }
+.info-box {
+  background: rgba(10,132,255,0.05); border: 1px solid rgba(10,132,255,0.2);
+  border-radius: 12px; padding: 16px; margin-bottom: 24px;
+}
+.info-box-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--primary); }
+.info-box-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-size: 12px; font-weight: 600; color: var(--text-secondary); padding: 12px 0; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+td { padding: 16px 0; border-bottom: 1px solid var(--bg); font-size: 14px; }
+tr:last-child td { border-bottom: none; }
+.user-row { display: flex; align-items: center; gap: 12px; }
+.user-avatar {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), #AF52DE);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 14px;
+}
+.badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+.badge-blue { background: rgba(10,132,255,0.1); color: var(--primary); }
+.badge-green { background: rgba(48,209,88,0.1); color: var(--green); }
+.code-box {
+  background: var(--bg); border-radius: 8px; padding: 12px;
+  font-family: 'Courier New', monospace; font-size: 13px; margin-top: 12px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Gestione Utenti</h1>
+  <div class="subtitle">Sistema di autenticazione - Radio C.B. Lunigiana</div>
+</div>
+
+<div class="card">
+  <div class="info-box">
+    <div class="info-box-title">ℹ️ Come aggiungere nuovi utenti</div>
+    <div class="info-box-text">
+      Per aggiungere nuovi utenti al sistema, modifica l'array <code>utenti</code> nel file <code>login.html</code>:
+      <div class="code-box">
+const utenti = [<br>
+&nbsp;&nbsp;{ username: 'admin', password: 'admin123', ruolo: 'admin', nome: 'Amministratore', volontarioId: null },<br>
+&nbsp;&nbsp;{ username: 'mario.rossi', password: 'volontario123', ruolo: 'volontario', nome: 'Mario Rossi', volontarioId: 1 }<br>
+];
+      </div>
+      <br>
+      <strong>Ruoli disponibili:</strong> <code>admin</code> (accesso completo) | <code>volontario</code> (solo propri servizi)<br>
+      <strong>volontarioId:</strong> Collega l'utente a un volontario esistente (vedi tab Volontari per gli ID)
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Utente</th><th>Username</th><th>Ruolo</th><th>Collegato a</th></tr>
+    </thead>
+    <tbody id="utentiTable"></tbody>
+  </table>
+</div>
+
+<script>
+const utenti = [
+  { username: 'admin', password: 'admin123', ruolo: 'admin', nome: 'Amministratore', volontarioId: null },
+  { username: 'mario.rossi', password: 'volontario123', ruolo: 'volontario', nome: 'Mario Rossi', volontarioId: 1 }
+];
+
+const dbVolontari = JSON.parse(localStorage.getItem('pc_volontari_v4') || '[]');
+
+function renderUtenti() {
+  const tbody = document.getElementById('utentiTable');
+  tbody.innerHTML = utenti.map(u => {
+    const vol = u.volontarioId? dbVolontari.find(v => v.id === u.volontarioId) : null;
+    return `
+      <tr>
+        <td>
+          <div class="user-row">
+            <div class="user-avatar">${u.nome.split(' ').map(n=>n[0]).join('').substring(0,2)}</div>
+            <span>${u.nome}</span>
+          </div>
+        </td>
+        <td><code>${u.username}</code></td>
+        <td><span class="badge ${u.ruolo === 'admin'? 'badge-blue' : 'badge-green'}">${u.ruolo}</span></td>
+        <td>${vol? vol.nome : '-'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+renderUtenti();
+</script>
+
+</body>
+</html>
