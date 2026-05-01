@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attrezzature - Radio C.B. Lunigiana</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+  <div class="lg:hidden bg-blue-900 text-white p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-50">
+    <button onclick="toggleMenu()" class="text-2xl"><i class="fas fa-bars"></i></button>
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+      <span class="font-bold text-sm">Radio C.B. Lunigiana</span>
+    </a>
+    <a href="login.html" class="text-xl"><i class="fas fa-sign-out-alt"></i></a>
+  </div>
+
+  <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-blue-900 text-white transform -translate-x-full lg:translate-x-0 transition-transform duration-200 z-40 overflow-y-auto">
+    <div class="p-5 border-b border-blue-800 mt-16 lg:mt-0 text-center">
+      <a href="index.html">
+        <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-16 h-16 mx-auto mb-2 rounded-full object-cover hover:opacity-80">
+        <h2 class="text-xl font-bold hover:text-blue-200">ProtCiv Manager</h2>
+      </a>
+    </div>
+    <nav class="p-4">
+      <a href="index.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-home w-5"></i> Dashboard</a>
+      <a href="servizi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-tasks w-5"></i> Servizi</a>
+      <a href="volontari.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-users w-5"></i> Volontari</a>
+      <a href="corsi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-graduation-cap w-5"></i> Corsi</a>
+      <a href="responsabili.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-user-tie w-5"></i> Responsabili</a>
+      <a href="mezzi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-truck w-5"></i> Mezzi</a>
+      <a href="attrezzature.html" class="flex items-center gap-3 p-3 rounded bg-blue-800 mb-2"><i class="fas fa-walkie-talkie w-5"></i> Attrezzature</a>
+      <a href="report.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-file-pdf w-5"></i> Report</a>
+      <div class="border-t border-blue-800 my-3"></div>
+      <a href="#" onclick="scaricaBackup(); return false;" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2">
+        <i class="fas fa-download w-5"></i> Scarica Backup
+      </a>
+      <label class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2 cursor-pointer">
+        <i class="fas fa-upload w-5"></i> Carica Backup
+        <input type="file" accept=".json" onchange="caricaBackup(event)" class="hidden">
+      </label>
+      <a href="login.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mt-4"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+    </nav>
+  </div>
+
+  <div id="overlay" onclick="toggleMenu()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>
+
+  <div class="lg:ml-64 pt-20 lg:pt-8 p-4 lg:p-8">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <a href="index.html" class="text-blue-600 text-sm mb-1 block"><i class="fas fa-arrow-left"></i> Torna alla Dashboard</a>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-800">Gestione Attrezzature</h1>
+      </div>
+      <button onclick="mostraForm()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded font-bold text-sm">
+        <i class="fas fa-plus"></i> Nuova Attrezzatura
+      </button>
+    </div>
+
+    <!-- Form Nuova Attrezzatura -->
+    <div id="formAttrezzatura" class="bg-white rounded-lg shadow p-5 mb-6 hidden">
+      <h2 class="text-lg font-bold text-gray-800 mb-4">Nuova Attrezzatura</h2>
+      <form onsubmit="salvaAttrezzatura(event)">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+          <select id="categoria" onchange="aggiornaSottocategoria()" class="border rounded p-2 text-sm" required>
+            <option value="">Categoria...</option>
+            <option value="Radio">Radio</option>
+            <option value="Antenne">Antenne</option>
+            <option value="Materiale Elettrico">Materiale Elettrico</option>
+            <option value="Materiale Idro">Materiale Idro</option>
+            <option value="Materiale Logistico">Materiale Logistico</option>
+            <option value="Altro">Altro</option>
+          </select>
+
+          <select id="sottocategoria" class="border rounded p-2 text-sm" required>
+            <option value="">Seleziona prima la categoria</option>
+          </select>
+
+          <input type="text" id="modello" placeholder="Modello *" class="border rounded p-2 text-sm" required>
+          <input type="text" id="seriale" placeholder="Numero Seriale" class="border rounded p-2 text-sm">
+
+          <!-- Campi solo per Radio -->
+          <input type="text" id="idRadio" placeholder="ID Radio" class="border rounded p-2 text-sm hidden">
+          <input type="text" id="identificativo" placeholder="Identificativo es: LUNIGIANA1" class="border rounded p-2 text-sm hidden">
+
+          <select id="frequenza" class="border rounded p-2 text-sm hidden">
+            <option value="">Frequenza/Banda</option>
+            <option value="VHF">VHF</option>
+            <option value="UHF">UHF</option>
+            <option value="PMR-LPD">PMR-LPD</option>
+          </select>
+
+          <select id="stato" class="border rounded p-2 text-sm" required>
+            <option value="Operativo">Operativo</option>
+            <option value="In Manutenzione">In Manutenzione</option>
+            <option value="Dismesso">Dismesso</option>
+          </select>
+
+          <textarea id="note" placeholder="Note" class="border rounded p-2 text-sm lg:col-span-2" rows="2"></textarea>
+        </div>
+        <div class="flex gap-2 mt-4">
+          <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded font-bold text-sm">Salva</button>
+          <button type="button" onclick="nascondiForm()" class="bg-gray-400 text-white px-4 py-2 rounded font-bold text-sm">Annulla</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tabella Attrezzature -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="text-left p-3">Categoria</th>
+              <th class="text-left p-3">Tipo</th>
+              <th class="text-left p-3">Modello</th>
+              <th class="text-left p-3">ID/Seriale</th>
+              <th class="text-left p-3">Stato</th>
+              <th class="text-center p-3">Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="tabellaAttrezzature"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sottocategorie = {
+      'Radio': ['Portatile', 'Base', 'Veicolare', 'Campale', 'Ponte Radio'],
+      'Antenne': ['Dipolo', 'Direttiva', 'Collineare'],
+      'Materiale Elettrico': ['Prolunga', 'Adattatore', 'Sottoquadro', 'Generatore', 'Plafoniera', 'Faro', 'Torcia', 'Torre faro', 'Altro'],
+      'Materiale Idro': ['Idrovora', 'Accessorio', 'Altro'],
+      'Materiale Logistico': ['Tenda', 'Brandina', 'Altro'],
+      'Altro': ['Altro']
+    };
+
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+      document.getElementById('overlay').classList.toggle('hidden');
+    }
+
+    function mostraForm() {
+      document.getElementById('formAttrezzatura').classList.remove('hidden');
+    }
+
+    function nascondiForm() {
+      document.getElementById('formAttrezzatura').classList.add('hidden');
+      document.querySelector('#formAttrezzatura form').reset();
+      document.getElementById('sottocategoria').innerHTML = '<option value="">Seleziona prima la categoria</option>';
+      nascondiCampiRadio();
+    }
+
+    function aggiornaSottocategoria() {
+      const cat = document.getElementById('categoria').value;
+      const selectSotto = document.getElementById('sottocategoria');
+
+      selectSotto.innerHTML = '<option value="">Tipo...</option>';
+
+      if (cat && sottocategorie[cat]) {
+        sottocategorie[cat].forEach(s => {
+          selectSotto.innerHTML += `<option value="${s}">${s}</option>`;
+        });
+      }
+
+      // Mostra/nascondi campi Radio
+      if (cat === 'Radio') {
+        mostraCampiRadio();
+      } else {
+        nascondiCampiRadio();
+      }
+    }
+
+    function mostraCampiRadio() {
+      document.getElementById('idRadio').classList.remove('hidden');
+      document.getElementById('identificativo').classList.remove('hidden');
+      document.getElementById('frequenza').classList.remove('hidden');
+    }
+
+    function nascondiCampiRadio() {
+      document.getElementById('idRadio').classList.add('hidden');
+      document.getElementById('identificativo').classList.add('hidden');
+      document.getElementById('frequenza').classList.add('hidden');
+    }
+
+    function salvaAttrezzatura(e) {
+      e.preventDefault();
+      const attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+
+      const nuova = {
+        id: Date.now(),
+        categoria: document.getElementById('categoria').value,
+        sottocategoria: document.getElementById('sottocategoria').value,
+        modello: document.getElementById('modello').value,
+        seriale: document.getElementById('seriale').value,
+        idRadio: document.getElementById('idRadio').value,
+        identificativo: document.getElementById('identificativo').value,
+        frequenza: document.getElementById('frequenza').value,
+        stato: document.getElementById('stato').value,
+        note: document.getElementById('note').value
+      };
+
+      attrezzature.push(nuova);
+      localStorage.setItem('attrezzature', JSON.stringify(attrezzature));
+      nascondiForm();
+      caricaAttrezzature();
+    }
+
+    function caricaAttrezzature() {
+      const attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+      const tbody = document.getElementById('tabellaAttrezzature');
+
+      if (attrezzature.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-500">Nessuna attrezzatura registrata</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = attrezzature.map(a => {
+        const coloreStato = a.stato === 'Operativo'? 'text-green-600' : a.stato === 'In Manutenzione'? 'text-orange-600' : 'text-red-600';
+        const idDisplay = a.categoria === 'Radio'? (a.identificativo || a.idRadio || a.seriale || '-') : (a.seriale || '-');
+
+        return `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-3 font-semibold">${a.categoria}</td>
+            <td class="p-3">${a.sottocategoria}</td>
+            <td class="p-3">${a.modello}</td>
+            <td class="p-3 text-xs">${idDisplay}</td>
+            <td class="p-3"><span class="font-bold ${coloreStato}">${a.stato}</span></td>
+            <td class="p-3 text-center">
+              <button onclick="eliminaAttrezzatura(${a.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function eliminaAttrezzatura(id) {
+      if (!confirm('Eliminare questa attrezzatura?')) return;
+      let attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+      attrezzature = attrezzature.filter(a => a.id!== id);
+      localStorage.setItem('attrezzature', JSON.stringify(attrezzature));
+      caricaAttrezzature();
+    }
+
+    // Backup
+    function scaricaBackup() {
+      const dati = {
+        volontari: JSON.parse(localStorage.getItem('volontari') || '[]'),
+        corsi: JSON.parse(localStorage.getItem('corsi') || '[]'),
+        responsabili: JSON.parse(localStorage.getItem('responsabili') || '[]'),
+        mezzi: JSON.parse(localStorage.getItem('mezzi') || '[]'),
+        attrezzature: JSON.parse(localStorage.getItem('attrezzature') || '[]'),
+        servizi: JSON.parse(localStorage.getItem('servizi') || '[]'),
+        dataBackup: new Date().toISOString(),
+        versione: '1.0'
+      };
+      const blob = new Blob([JSON.stringify(dati, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_protciv_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      alert('Backup scaricato con successo!');
+    }
+
+    function caricaBackup(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const dati = JSON.parse(event.target.result);
+          if (!confirm('ATTENZIONE: Questa operazione sovrascrive TUTTI i dati attuali.\n\nSei sicuro?')) {
+            e.target.value = '';
+            return;
+          }
+          localStorage.setItem('volontari', JSON.stringify(dati.volontari || []));
+          localStorage.setItem('corsi', JSON.stringify(dati.corsi || []));
+          localStorage.setItem('responsabili', JSON.stringify(dati.responsabili || []));
+          localStorage.setItem('mezzi', JSON.stringify(dati.mezzi || []));
+          localStorage.setItem('attrezzature', JSON.stringify(dati.attrezzature || []));
+          localStorage.setItem('servizi', JSON.stringify(dati.servizi || []));
+          alert('Backup ripristinato! Ricarico...');
+          location.reload();
+        } catch (err) {
+          alert('File backup non valido');
+          e.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    caricaAttrezzature();
+  </script>
+</body>
+</html>
