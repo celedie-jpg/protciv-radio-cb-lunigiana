@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report e Attestati - Radio C.B. Lunigiana</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+  <div class="lg:hidden bg-blue-900 text-white p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-50">
+    <button onclick="toggleMenu()" class="text-2xl"><i class="fas fa-bars"></i></button>
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+      <span class="font-bold text-sm">Radio C.B. Lunigiana</span>
+    </a>
+    <a href="login.html" class="text-xl"><i class="fas fa-sign-out-alt"></i></a>
+  </div>
+
+  <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-blue-900 text-white transform -translate-x-full lg:translate-x-0 transition-transform duration-200 z-40 overflow-y-auto">
+    <div class="p-5 border-b border-blue-800 mt-16 lg:mt-0 text-center">
+      <a href="index.html">
+        <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-16 h-16 mx-auto mb-2 rounded-full object-cover hover:opacity-80">
+        <h2 class="text-xl font-bold hover:text-blue-200">ProtCiv Manager</h2>
+      </a>
+    </div>
+    <nav class="p-4">
+      <a href="index.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-home w-5"></i> Dashboard</a>
+      <a href="servizi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-tasks w-5"></i> Servizi</a>
+      <a href="volontari.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-users w-5"></i> Volontari</a>
+      <a href="mezzi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-truck w-5"></i> Mezzi</a>
+      <a href="attrezzature.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-walkie-talkie w-5"></i> Attrezzature</a>
+      <a href="report.html" class="flex items-center gap-3 p-3 rounded bg-blue-800 mb-2"><i class="fas fa-file-pdf w-5"></i> Report</a>
+      <a href="login.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mt-8"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+    </nav>
+  </div>
+
+  <div id="overlay" onclick="toggleMenu()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>
+
+  <div class="lg:ml-64 pt-20 lg:pt-8 p-4 lg:p-8">
+    <div class="mb-4">
+      <a href="index.html" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold">
+        <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+      </a>
+    </div>
+
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Report e Attestati PDF</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- ATTESTATI -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="font-bold text-xl mb-4 text-blue-800">
+          <i class="fas fa-certificate"></i> Attestato di Partecipazione
+        </h2>
+        <p class="text-gray-600 mb-4">Genera attestato per un volontario su un servizio specifico</p>
+        
+        <div class="space-y-3">
+          <select id="selectVolontario" class="border p-2 rounded w-full">
+            <option value="">Seleziona Volontario...</option>
+          </select>
+          
+          <select id="selectServizio" class="border p-2 rounded w-full">
+            <option value="">Seleziona Servizio...</option>
+          </select>
+          
+          <button onclick="generaAttestato()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold w-full hover:bg-blue-700">
+            <i class="fas fa-download"></i> Scarica Attestato PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- REPORT -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="font-bold text-xl mb-4 text-green-800">
+          <i class="fas fa-file-alt"></i> Report PDF
+        </h2>
+        <p class="text-gray-600 mb-4">Esporta liste complete in PDF</p>
+        
+        <div class="space-y-3">
+          <button onclick="generaReportVolontari()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold w-full hover:bg-green-700">
+            <i class="fas fa-users"></i> Report Volontari
+          </button>
+          
+          <button onclick="generaReportMezzi()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold w-full hover:bg-green-700">
+            <i class="fas fa-truck"></i> Report Mezzi
+          </button>
+          
+          <button onclick="generaReportServizi()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold w-full hover:bg-green-700">
+            <i class="fas fa-tasks"></i> Report Servizi
+          </button>
+          
+          <button onclick="generaReportAttrezzature()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold w-full hover:bg-green-700">
+            <i class="fas fa-walkie-talkie"></i> Report Attrezzature
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+      document.getElementById('overlay').classList.toggle('hidden');
+    }
+
+    // Carica dropdown
+    function caricaDropdown() {
+      const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+      const servizi = JSON.parse(localStorage.getItem('servizi') || '[]');
+
+      const selVol = document.getElementById('selectVolontario');
+      selVol.innerHTML = '<option value="">Seleziona Volontario...</option>' + 
+        volontari.map(v => `<option value="${v.id}">${v.nome} ${v.cognome}</option>`).join('');
+
+      const selServ = document.getElementById('selectServizio');
+      selServ.innerHTML = '<option value="">Seleziona Servizio...</option>' + 
+        servizi.map(s => `<option value="${s.id}">${s.localita} - ${new Date(s.dataOra).toLocaleDateString('it-IT')}</option>`).join('');
+    }
+
+    // GENERA ATTESTATO
+    function generaAttestato() {
+      const volId = parseInt(document.getElementById('selectVolontario').value);
+      const servId = parseInt(document.getElementById('selectServizio').value);
+
+      if (!volId || !servId) {
+        alert('Seleziona volontario e servizio');
+        return;
+      }
+
+      const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+      const servizi = JSON.parse(localStorage.getItem('servizi') || '[]');
+      const v = volontari.find(x => x.id === volId);
+      const s = servizi.find(x => x.id === servId);
+
+      if (!v.volontari.includes(volId)) {
+        alert('Questo volontario non ha partecipato al servizio selezionato');
+        return;
+      }
+
+      const doc = new jsPDF();
+      const dataServ = new Date(s.dataOra).toLocaleDateString('it-IT', {day: '2-digit', month: 'long', year: 'numeric'});
+
+      // Logo
+      doc.setFontSize(20);
+      doc.setTextColor(30, 58, 138);
+      doc.text('RADIO C.B. LUNIGIANA', 105, 30, {align: 'center'});
+      doc.setFontSize(14);
+      doc.text('Protezione Civile - Gruppo Radioamatori', 105, 38, {align: 'center'});
+
+      // Titolo
+      doc.setFontSize(24);
+      doc.setTextColor(0, 0, 0);
+      doc.text('ATTESTATO DI PARTECIPAZIONE', 105, 70, {align: 'center'});
+
+      // Corpo
+      doc.setFontSize(12);
+      doc.text('Si attesta che', 105, 90, {align: 'center'});
+      
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text(`${v.nome} ${v.cognome}`, 105, 105, {align: 'center'});
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`nato/a il ${v.dataNascita? new Date(v.dataNascita).toLocaleDateString('it-IT') : '___/___/______'}`, 105, 115, {align: 'center'});
+      doc.text(`C.F. ${v.cf || '________________'}`, 105, 122, {align: 'center'});
+      
+      doc.text('ha partecipato in qualità di Volontario', 105, 135, {align: 'center'});
+      doc.text('al servizio di Protezione Civile:', 105, 142, {align: 'center'});
+      
+      doc.setFont(undefined, 'bold');
+      doc.text(s.descrizione, 105, 155, {align: 'center', maxWidth: 170});
+      
+      doc.setFont(undefined, 'normal');
+      doc.text(`svoltosi in località ${s.localita}`, 105, 170, {align: 'center'});
+      doc.text(`in data ${dataServ}`, 105, 177, {align: 'center'});
+
+      // Firma
+      doc.text('Il Presidente', 40, 230);
+      doc.line(40, 235, 90, 235);
+      
+      doc.text('Data: _______________', 120, 230);
+      doc.line(120, 235, 170, 235);
+
+      doc.save(`Attestato_${v.cognome}_${s.localita}.pdf`);
+    }
+
+    // REPORT VOLONTARI
+    function generaReportVolontari() {
+      const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+      const doc = new jsPDF();
+      
+      doc.setFontSize(18);
+      doc.text('REPORT VOLONTARI', 105, 20, {align: 'center'});
+      doc.setFontSize(10);
+      doc.text(`Radio C.B. Lunigiana - ${new Date().toLocaleDateString('it-IT')}`, 105, 27, {align: 'center'});
+
+      let y = 40;
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'bold');
+      doc.text('Nome', 10, y);
+      doc.text('CF', 50, y);
+      doc.text('Telefono', 90, y);
+      doc.text('Patente', 130, y);
+      doc.text('Stato', 170, y);
+      doc.line(10, y+2, 200, y+2);
+      y += 7;
+
+      doc.setFont(undefined, 'normal');
+      volontari.forEach(v => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text(`${v.nome} ${v.cognome}`, 10, y);
+        doc.text(v.cf || '-', 50, y);
+        doc.text(v.telefono || '-', 90, y);
+        doc.text(v.patente || '-', 130, y);
+        doc.text(v.stato, 170, y);
+        y += 6;
+      });
+
+      doc.save('Report_Volontari.pdf');
+    }
+
+    // REPORT MEZZI
+    function generaReportMezzi() {
+      const mezzi = JSON.parse(localStorage.getItem('mezzi') || '[]');
+      const doc = new jsPDF();
+      
+      doc.setFontSize(18);
+      doc.text('REPORT MEZZI', 105, 20, {align: 'center'});
+      doc.setFontSize(10);
+      doc.text(`Radio C.B. Lunigiana - ${new Date().toLocaleDateString('it-IT')}`, 105, 27, {align: 'center'});
+
+      let y = 40;
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'bold');
+      doc.text('Tipo', 10, y);
+      doc.text('Targa', 50, y);
+      doc.text('Assicurazione', 90, y);
+      doc.text('Revisione', 130, y);
+      doc.text('Stato', 170, y);
+      doc.line(10, y+2, 200, y+2);
+      y += 7;
+
+      doc.setFont(undefined, 'normal');
+      mezzi.forEach(m => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text(m.tipo, 10, y);
+        doc.text(m.targa, 50, y);
+        doc.text(m.assicurazione? new Date(m.assicurazione).toLocaleDateString('it-IT') : '-', 90, y);
+        doc.text(m.revisione? new Date(m.revisione).toLocaleDateString('it-IT') : '-', 130, y);
+        doc.text(m.stato, 170, y);
+        y += 6;
+      });
+
+      doc.save('Report_Mezzi.pdf');
+    }
+
+    // REPORT SERVIZI
+    function generaReportServizi() {
+      const servizi = JSON.parse(localStorage.getItem('servizi') || '[]');
+      const doc = new jsPDF();
+      
+      doc.setFontSize(18);
+      doc.text('REPORT SERVIZI', 105, 20, {align: 'center'});
+      doc.setFontSize(10);
+      doc.text(`Radio C.B. Lunigiana - ${new Date().toLocaleDateString('it-IT')}`, 105, 27, {align: 'center'});
+
+      let y = 40;
+      servizi.sort((a, b) => new Date(b.dataOra) - new Date(a.dataOra));
+      
+      servizi.forEach(s => {
+        if (y > 250) { doc.addPage(); y = 20; }
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text(`${new Date(s.dataOra).toLocaleDateString('it-IT')} - ${s.localita}`, 10, y);
+        y += 5;
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(9);
+        doc.text(`Tipo: ${s.tipo} | Stato: ${s.stato}`, 10, y);
+        y += 4;
+        doc.text(`Descrizione: ${s.descrizione.substring(0, 80)}`, 10, y);
+        y += 4;
+        doc.text(`Volontari: ${s.volontari?.length || 0} | Mezzi: ${s.mezzi?.length || 0} | Radio: ${s.attrezzature?.length || 0}`, 10, y);
+        y += 8;
+      });
+
+      doc.save('Report_Servizi.pdf');
+    }
+
+    // REPORT ATTREZZATURE
+    function generaReportAttrezzature() {
+      const attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+      const doc = new jsPDF();
+      
+      doc.setFontSize(18);
+      doc.text('REPORT ATTREZZATURE', 105, 20, {align: 'center'});
+      doc.setFontSize(10);
+      doc.text(`Radio C.B. Lunigiana - ${new Date().toLocaleDateString('it-IT')}`, 105, 27, {align: 'center'});
+
+      let y = 40;
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'bold');
+      doc.text('Categoria', 10, y);
+      doc.text('Modello', 60, y);
+      doc.text('Seriale', 110, y);
+      doc.text('Frequenza', 150, y);
+      doc.text('Stato', 180, y);
+      doc.line(10, y+2, 200, y+2);
+      y += 7;
+
+      doc.setFont(undefined, 'normal');
+      attrezzature.forEach(a => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text(a.categoria.substring(0, 25), 10, y);
+        doc.text(a.modello.substring(0, 20), 60, y);
+        doc.text(a.seriale || '-', 110, y);
+        doc.text(a.frequenza || '-', 150, y);
+        doc.text(a.stato, 180, y);
+        y += 6;
+      });
+
+      doc.save('Report_Attrezzature.pdf');
+    }
+
+    caricaDropdown();
+  </script>
+</body>
+</html>
