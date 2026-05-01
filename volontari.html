@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volontari - Radio C.B. Lunigiana</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+  <div class="lg:hidden bg-blue-900 text-white p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-50">
+    <button onclick="toggleMenu()" class="text-2xl"><i class="fas fa-bars"></i></button>
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+      <span class="font-bold text-sm">Radio C.B. Lunigiana</span>
+    </a>
+    <a href="login.html" class="text-xl"><i class="fas fa-sign-out-alt"></i></a>
+  </div>
+
+  <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-blue-900 text-white transform -translate-x-full lg:translate-x-0 transition-transform duration-200 z-40 overflow-y-auto">
+    <div class="p-5 border-b border-blue-800 mt-16 lg:mt-0 text-center">
+      <a href="index.html">
+        <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-16 h-16 mx-auto mb-2 rounded-full object-cover hover:opacity-80">
+        <h2 class="text-xl font-bold hover:text-blue-200">ProtCiv Manager</h2>
+      </a>
+    </div>
+    <nav class="p-4">
+      <a href="index.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-home w-5"></i> Dashboard</a>
+      <a href="servizi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-tasks w-5"></i> Servizi</a>
+      <a href="volontari.html" class="flex items-center gap-3 p-3 rounded bg-blue-800 mb-2"><i class="fas fa-users w-5"></i> Volontari</a>
+      <a href="mezzi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-truck w-5"></i> Mezzi</a>
+      <a href="attrezzature.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-walkie-talkie w-5"></i> Attrezzature</a>
+      <a href="report.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-file-pdf w-5"></i> Report</a>
+      <a href="login.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mt-8"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+    </nav>
+  </div>
+
+  <div id="overlay" onclick="toggleMenu()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>
+
+  <div class="lg:ml-64 pt-20 lg:pt-8 p-4 lg:p-8">
+    <div class="mb-4">
+      <a href="index.html" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold">
+        <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+      </a>
+    </div>
+
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">Gestione Volontari</h1>
+      <button onclick="toggleForm()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold">
+        <i class="fas fa-plus"></i> Nuovo Volontario
+      </button>
+    </div>
+
+    <div id="formVolontario" class="hidden bg-white rounded-lg shadow p-6 mb-6">
+      <h3 class="font-bold text-lg mb-4" id="titoloForm">Nuovo Volontario</h3>
+      <form onsubmit="salvaVolontario(event)">
+        <input type="hidden" id="idVolontario">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          <input type="text" id="nome" placeholder="Nome *" required class="border p-2 rounded">
+          <input type="text" id="cognome" placeholder="Cognome *" required class="border p-2 rounded">
+          <input type="text" id="codiceFiscale" placeholder="Codice Fiscale *" required maxlength="16" class="border p-2 rounded uppercase">
+          <input type="tel" id="telefono" placeholder="Telefono *" required class="border p-2 rounded">
+          <input type="email" id="email" placeholder="Email" class="border p-2 rounded lg:col-span-2">
+          <input type="date" id="dataNascita" placeholder="Data Nascita" class="border p-2 rounded">
+          <input type="text" id="luogoNascita" placeholder="Luogo di Nascita" class="border p-2 rounded">
+          <input type="text" id="indirizzo" placeholder="Indirizzo" class="border p-2 rounded lg:col-span-2">
+          <select id="stato" required class="border p-2 rounded">
+            <option value="Attivo">Attivo</option>
+            <option value="Sospeso">Sospeso</option>
+            <option value="Inattivo">Inattivo</option>
+          </select>
+          <select id="ruolo" required class="border p-2 rounded">
+            <option value="Volontario">Volontario</option>
+            <option value="Caposquadra">Caposquadra</option>
+            <option value="Coordinatore">Coordinatore</option>
+            <option value="Responsabile">Responsabile</option>
+          </select>
+        </div>
+
+        <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4 mb-4">
+          <h4 class="font-bold text-red-900 mb-3"><i class="fas fa-flag"></i> Colonna Mobile Nazionale</h4>
+          <label class="flex items-center">
+            <input type="checkbox" id="colonnaMobile" class="mr-2 w-5 h-5">
+            <span class="font-semibold">Iscritto alla Colonna Mobile Nazionale di Protezione Civile</span>
+          </label>
+        </div>
+
+        <div class="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mb-4">
+          <h4 class="font-bold text-blue-900 mb-3"><i class="fas fa-users-cog"></i> Team di Appartenenza</h4>
+          <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
+            <label class="flex items-center p-2 bg-white rounded cursor-pointer">
+              <input type="checkbox" value="Antincendio" class="mr-2 team-check">
+              <span class="text-sm">Antincendio Boschivo</span>
+            </label>
+            <label class="flex items-center p-2 bg-white rounded cursor-pointer">
+              <input type="checkbox" value="Logistica" class="mr-2 team-check">
+              <span class="text-sm">Logistica</span>
+            </label>
+            <label class="flex items-center p-2 bg-white rounded cursor-pointer">
+              <input type="checkbox" value="Cucina" class="mr-2 team-check">
+              <span class="text-sm">Cucina</span>
+            </label>
+            <label class="flex items-center p-2 bg-white rounded cursor-pointer">
+              <input type="checkbox" value="Segreteria" class="mr-2 team-check">
+              <span class="text-sm">Segreteria</span>
+            </label>
+            <label class="flex items-center p-2 bg-white rounded cursor-pointer">
+              <input type="checkbox" value="Telecomunicazioni" class="mr-2 team-check">
+              <span class="text-sm">Telecomunicazioni</span>
+            </label>
+            <label class="flex items-center p-2 bg-white rounded cursor-pointer">
+              <input type="checkbox" value="Sanitario" class="mr-2 team-check">
+              <span class="text-sm">Sanitario</span>
+            </label>
+            <label class="flex items-center p-2 bg-white rounded cursor-pointer">
+              <input type="checkbox" value="Cinofili" class="mr-2 team-check">
+              <span class="text-sm">Unità Cinofili</span>
+            </label>
+            <label class="flex items-center p-2 bg-white rounded cursor-pointer">
+              <input type="checkbox" value="Droni" class="mr-2 team-check">
+              <span class="text-sm">Droni</span>
+            </label>
+            <label class="flex items-center p-2 bg-white rounded cursor-pointer">
+              <input type="checkbox" value="Idrogeologico" class="mr-2 team-check">
+              <span class="text-sm">Rischio Idrogeologico</span>
+            </label>
+          </div>
+        </div>
+
+        <textarea id="note" placeholder="Note / Specializzazioni / Brevetti" rows="2" class="border p-2 rounded w-full mb-4"></textarea>
+        <div class="flex gap-2">
+          <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded font-bold">Salva</button>
+          <button type="button" onclick="annullaForm()" class="bg-gray-400 text-white px-6 py-2 rounded">Annulla</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 mb-4">
+      <input type="text" id="cercaVolontario" onkeyup="cercaVolontari()" placeholder="Cerca per nome, cognome o codice fiscale..." class="border p-2 rounded w-full">
+    </div>
+
+    <div id="listaVolontari" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+      document.getElementById('overlay').classList.toggle('hidden');
+    }
+
+    function toggleForm() {
+      const form = document.getElementById('formVolontario');
+      form.classList.toggle('hidden');
+      if (!form.classList.contains('hidden')) {
+        document.getElementById('titoloForm').textContent = 'Nuovo Volontario';
+        document.querySelector('form').reset();
+        document.getElementById('idVolontario').value = '';
+        document.querySelectorAll('.team-check').forEach(cb => cb.checked = false);
+      }
+    }
+
+    function annullaForm() {
+      document.getElementById('formVolontario').classList.add('hidden');
+      document.querySelector('form').reset();
+    }
+
+    function salvaVolontario(e) {
+      e.preventDefault();
+      const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+      const id = document.getElementById('idVolontario').value;
+
+      const teamSelezionati = Array.from(document.querySelectorAll('.team-check:checked')).map(cb => cb.value);
+
+      const dati = {
+        id: id? parseInt(id) : Date.now(),
+        nome: document.getElementById('nome').value,
+        cognome: document.getElementById('cognome').value,
+        codiceFiscale: document.getElementById('codiceFiscale').value.toUpperCase(),
+        telefono: document.getElementById('telefono').value,
+        email: document.getElementById('email').value,
+        dataNascita: document.getElementById('dataNascita').value,
+        luogoNascita: document.getElementById('luogoNascita').value,
+        indirizzo: document.getElementById('indirizzo').value,
+        stato: document.getElementById('stato').value,
+        ruolo: document.getElementById('ruolo').value,
+        colonnaMobile: document.getElementById('colonnaMobile').checked,
+        team: teamSelezionati,
+        note: document.getElementById('note').value
+      };
+
+      if (id) {
+        const index = volontari.findIndex(v => v.id === parseInt(id));
+        volontari[index] = dati;
+      } else {
+        volontari.push(dati);
+      }
+
+      localStorage.setItem('volontari', JSON.stringify(volontari));
+      annullaForm();
+      mostraVolontari();
+    }
+
+    function modificaVolontario(id) {
+      const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+      const v = volontari.find(v => v.id === id);
+
+      document.getElementById('idVolontario').value = v.id;
+      document.getElementById('nome').value = v.nome;
+      document.getElementById('cognome').value = v.cognome;
+      document.getElementById('codiceFiscale').value = v.codiceFiscale;
+      document.getElementById('telefono').value = v.telefono;
+      document.getElementById('email').value = v.email || '';
+      document.getElementById('dataNascita').value = v.dataNascita || '';
+      document.getElementById('luogoNascita').value = v.luogoNascita || '';
+      document.getElementById('indirizzo').value = v.indirizzo || '';
+      document.getElementById('stato').value = v.stato;
+      document.getElementById('ruolo').value = v.ruolo;
+      document.getElementById('colonnaMobile').checked = v.colonnaMobile || false;
+      document.getElementById('note').value = v.note || '';
+
+      document.querySelectorAll('.team-check').forEach(cb => {
+        cb.checked = v.team && v.team.includes(cb.value);
+      });
+
+      document.getElementById('titoloForm').textContent = 'Modifica Volontario';
+      document.getElementById('formVolontario').classList.remove('hidden');
+      window.scrollTo(0, 0);
+    }
+
+    function eliminaVolontario(id) {
+      if (!confirm('Eliminare questo volontario?')) return;
+      let volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+      volontari = volontari.filter(v => v.id!== id);
+      localStorage.setItem('volontari', JSON.stringify(volontari));
+      mostraVolontari();
+    }
+
+    function cercaVolontari() {
+      const filtro = document.getElementById('cercaVolontario').value.toLowerCase();
+      mostraVolontari(filtro);
+    }
+
+    function mostraVolontari(filtro = '') {
+      let volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+
+      if (filtro) {
+        volontari = volontari.filter(v =>
+          v.nome.toLowerCase().includes(filtro) ||
+          v.cognome.toLowerCase().includes(filtro) ||
+          v.codiceFiscale.toLowerCase().includes(filtro)
+        );
+      }
+
+      const lista = document.getElementById('listaVolontari');
+
+      if (volontari.length === 0) {
+        lista.innerHTML = `<div class="col-span-full bg-white rounded-lg shadow p-8 text-center text-gray-500">
+          <i class="fas fa-users text-5xl mb-3 text-gray-300"></i>
+          <p class="text-lg">Nessun volontario trovato</p>
+        </div>`;
+        return;
+      }
+
+      lista.innerHTML = volontari.map(v => {
+        const coloreStato = v.stato === 'Attivo'? 'bg-green-100 text-green-800' :
+                           v.stato === 'Sospeso'? 'bg-yellow-100 text-yellow-800' :
+                           'bg-red-100 text-red-800';
+
+        const emailHtml = v.email? `<p class="text-sm"><i class="fas fa-envelope text-gray-500"></i> ${v.email}</p>` : '';
+        const colonnaHtml = v.colonnaMobile? '<span class="text-xs px-2 py-1 rounded bg-red-100 text-red-800 ml-1"><i class="fas fa-flag"></i> Col. Mobile</span>' : '';
+        const teamHtml = v.team && v.team.length > 0?
+          `<div class="mt-2 flex flex-wrap gap-1">${v.team.map(t => `<span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">${t}</span>`).join('')}</div>` : '';
+
+        return `
+        <div class="bg-white rounded-lg shadow p-4">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <h3 class="font-bold text-lg">${v.nome} ${v.cognome}</h3>
+              <span class="text-xs px-2 py-1 rounded ${coloreStato}">${v.stato}</span>
+              <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 ml-1">${v.ruolo}</span>
+              ${colonnaHtml}
+            </div>
+            <div class="flex gap-2">
+              <button onclick="modificaVolontario(${v.id})" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
+              <button onclick="eliminaVolontario(${v.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+            </div>
+          <div class="space-y-1">
+            <p class="text-sm"><i class="fas fa-id-card text-gray-500"></i> ${v.codiceFiscale}</p>
+            <p class="text-sm"><i class="fas fa-phone text-gray-500"></i> ${v.telefono}</p>
+            ${emailHtml}
+            ${v.dataNascita? `<p class="text-sm"><i class="fas fa-calendar text-gray-500"></i> ${new Date(v.dataNascita).toLocaleDateString('it-IT')}</p>` : ''}
+            ${v.indirizzo? `<p class="text-sm"><i class="fas fa-map-marker-alt text-gray-500"></i> ${v.indirizzo}</p>` : ''}
+          </div>
+          ${teamHtml}
+        </div>
+      `}).join('');
+    }
+
+    mostraVolontari();
+  </script>
+</body>
+</html>
