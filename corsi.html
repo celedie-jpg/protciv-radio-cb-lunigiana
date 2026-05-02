@@ -31,6 +31,8 @@
       <a href="index.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-home w-5"></i> Dashboard</a>
       <a href="servizi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-tasks w-5"></i> Servizi</a>
       <a href="volontari.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-users w-5"></i> Volontari</a>
+      <a href="attestati.html" id="linkAttestati" class="hidden flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2">
+  <i class="fas fa-certificate w-5"></i> Attestati</a>
       <a href="corsi.html" class="flex items-center gap-3 p-3 rounded bg-blue-800 mb-2"><i class="fas fa-graduation-cap w-5"></i> Corsi</a>
       <a href="responsabili.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-user-tie w-5"></i> Responsabili</a>
       <a href="mezzi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-truck w-5"></i> Mezzi</a>
@@ -422,5 +424,11 @@
 
     mostraCorsi();
   </script>
+  <script>
+  // Mostra link Attestati solo ad Admin
+  if (localStorage.getItem('utente_ruolo') === 'Admin') {
+    document.getElementById('linkAttestati').classList.remove('hidden');
+  }
+</script>
 </body>
 </html>
