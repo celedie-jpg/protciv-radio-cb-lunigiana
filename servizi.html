@@ -519,28 +519,27 @@ function mostraDettaglioServizio(id) {
     }
   }
 
-  let mezziHtml = '<p class="text-gray-500 text-sm">Nessun mezzo assegnato</p>';
-  if (s.mezzi && s.mezzi.length > 0) {
-    mezziHtml = '';
-    for (let i = 0; i < s.mezzi.length; i++) {
-      const id = s.mezzi[i];
-      const m = mezzi.find(function(me) { return me.id === id; });
-      if (m) mezziHtml += '<div class="p-2 bg-gray-50 rounded text-sm mb-1"><i class="fas fa-truck text-gray-500"></i> ' + (m.tipo || m.modello || m.nome) + ' - ' + m.targa + '</div>';
-    }
-  }
-
-  let attrHtml = '<p class="text-gray-500 text-sm">Nessuna attrezzatura assegnata</p>';
-  if (s.attrezzature && s.attrezzature.length > 0) {
-    attrHtml = '';
-    for (let i = 0; i < s.attrezzature.length; i++) {
-      const id = s.attrezzature[i];
-      const a = attrezzature.find(function(at) { return at.id === id; });
-      if (a) attrHtml += '<div class="p-2 bg-gray-50 rounded text-sm mb-1"><i class="fas fa-walkie-talkie text-gray-500"></i> ' + (a.descrizione || a.modello || a.nome) + '</div>';
-    }
-  }
-
   const html = '<div class="space-y-4">' +
     '<div><h3 class="font-bold text-lg mb-2">' + s.titolo + '</h3>' +
     '<div class="flex gap-2 mb-3">' +
     '<span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">' + s.tipo.replace(/_/g, ' ') + '</span>' +
-    '<span class="text-xs px-2 py-1 rounded bg-green-100 text
+    '<span class="text-xs px-2 py-1 rounded bg-green-100 text-green-800">' + s.convenzione + '</span>' +
+    '</div><p class="text-sm border-t pt-2">' + (s.descrizione || 'Nessuna descrizione') + '</p></div>' +
+    '<div><h4 class="font-bold text-sm mb-2">Volontari Assegnati:</h4>' + volontariHtml + '</div>' +
+    '</div>';
+
+  document.getElementById('contenutoDettaglio').innerHTML = html;
+  document.getElementById('modalDettaglio').classList.remove('hidden');
+}
+
+function chiudiModal() {
+  document.getElementById('modalDettaglio').classList.add('hidden');
+}
+
+function esportaPDF() {
+  alert("Generazione PDF in corso...");
+  // Qui andrebbe la logica jsPDF se necessaria
+}
+</script>
+</body>
+</html>
