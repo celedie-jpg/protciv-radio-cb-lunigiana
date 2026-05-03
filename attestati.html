@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attestati - Radio C.B. Lunigiana</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+  <script>
+    const ruolo = localStorage.getItem('utente_ruolo');
+    if (ruolo!== 'Admin') {
+      alert('Accesso riservato agli amministratori');
+      window.location.href = 'index.html';
+    }
+  </script>
+
+  <div class="lg:hidden bg-blue-900 text-white p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-50">
+    <button onclick="toggleMenu()" class="text-2xl"><i class="fas fa-bars"></i></button>
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+      <span class="font-bold text-sm">Radio C.B. Lunigiana</span>
+    </a>
+    <a href="login.html" class="text-xl"><i class="fas fa-sign-out-alt"></i></a>
+  </div>
+
+  <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-blue-900 text-white transform -translate-x-full lg:translate-x-0 transition-transform duration-200 z-40 overflow-y-auto">
+    <div class="p-5 border-b border-blue-800 mt-16 lg:mt-0 text-center">
+      <a href="index.html">
+        <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-16 h-16 mx-auto mb-2 rounded-full object-cover hover:opacity-80">
+        <h2 class="text-xl font-bold hover:text-blue-200">ProtCiv Manager</h2>
+      </a>
+    </div>
+    <nav class="p-4">
+      <a href="index.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-home w-5"></i> Dashboard</a>
+      <a href="servizi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-tasks w-5"></i> Servizi</a>
+      <a href="volontari.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-users w-5"></i> Volontari</a>
+      <a href="attestati.html" class="flex items-center gap-3 p-3 rounded bg-blue-800 mb-2"><i class="fas fa-certificate w-5"></i> Attestati</a>
+      <a href="corsi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-graduation-cap w-5"></i> Corsi</a>
+      <a href="responsabili.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-user-tie w-5"></i> Responsabili</a>
+      <a href="mezzi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-truck w-5"></i> Mezzi</a>
+      <a href="attrezzature.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-walkie-talkie w-5"></i> Attrezzature</a>
+      <a href="report.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-file-pdf w-5"></i> Report</a>
+      <a href="login.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mt-8"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+    </nav>
+  </div>
+
+  <div id="overlay" onclick="toggleMenu()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>
+
+  <div class="lg:ml-64 pt-20 lg:pt-8 p-4 lg:p-8">
+    <div class="mb-4">
+      <a href="index.html" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold">
+        <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+      </a>
+    </div>
+
+    <h1 class="text-2xl font-bold text-gray-800 mb-6"><i class="fas fa-certificate"></i> Gestione Attestati</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="font-bold text-lg mb-4 text-blue-900"><i class="fas fa-file"></i> Attestato Singolo Servizio</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-semibold mb-1">Seleziona Servizio</label>
+            <select id="selectServizio" onchange="caricaVolontariServizio()" class="border p-2 rounded w-full">
+              <option value="">Caricamento...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1">Seleziona Volontario</label>
+            <select id="selectVolontarioSingolo" class="border p-2 rounded w-full">
+              <option value="">Prima scegli un servizio</option>
+            </select>
+          </div>
+          <button onclick="generaAttestatoSingolo()" class="bg-red-600 text-white px-4 py-2 rounded font-bold w-full">
+            <i class="fas fa-file-pdf"></i> Genera Attestato
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="font-bold text-lg mb-4 text-green-900"><i class="fas fa-calendar-check"></i> Attestato Annuale</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-semibold mb-1">Seleziona Volontario</label>
+            <select id="selectVolontarioAnno" class="border p-2 rounded w-full">
+              <option value="">Caricamento...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1">Anno</label>
+            <select id="selectAnno" class="border p-2 rounded w-full">
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+            </select>
+          </div>
+          <button onclick="generaAttestatoAnnuale()" class="bg-green-600 text-white px-4 py-2 rounded font-bold w-full">
+            <i class="fas fa-file-pdf"></i> Genera Riepilogo Anno
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="azionePost" class="mt-6 hidden bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+      <h4 class="font-bold mb-2"><i class="fas fa-paper-plane"></i> Attestato Generato</h4>
+      <p class="text-sm mb-3" id="testoAzione"></p>
+      <div class="flex gap-2">
+        <a id="btnMailto" href="#" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">
+          <i class="fas fa-envelope"></i> Apri Email
+        </a>
+        <button onclick="chiudiAzione()" class="bg-gray-400 text-white px-4 py-2 rounded text-sm">Chiudi</button>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+window.onload = function() {
+  caricaServizi();
+  caricaVolontari();
+};
+
+function toggleMenu() {
+  document.getElementById('sidebar').classList.toggle('-translate-x-full');
+  document.getElementById('overlay').classList.toggle('hidden');
+}
+
+function getProgressivo(tipo) {
+  const anno = new Date().getFullYear().toString().slice(-2);
+  let key, prefisso;
+
+  if (tipo === 'singolo') {
+    key = 'contatore_SG';
+    prefisso = 'SG';
+  } else {
+    key = 'contatore_SA' + anno;
+    prefisso = 'SA' + anno + '/';
+  }
+
+  let num = parseInt(localStorage.getItem(key) || '0');
+  num++;
+  localStorage.setItem(key, num.toString());
+  return prefisso + num.toString().padStart(3, '0');
+}
+
+function caricaServizi() {
+  const servizi = JSON.parse(localStorage.getItem('servizi') || '[]').filter(function(s) {
+    return s && s.id && s.stato === 'Completato';
+  });
+  const select = document.getElementById('selectServizio');
+  if (servizi.length === 0) {
+    select.innerHTML = '<option value="">Nessun servizio completato</option>';
+    return;
+  }
+  let html = '<option value="">Scegli servizio...</option>';
+  for (let i = 0; i < servizi.length; i++) {
+    const s = servizi[i];
+    const data = new Date(s.dataInizio).toLocaleDateString('it-IT');
+    html += '<option value="' + s.id + '">' + s.titolo + ' - ' + data + '</option>';
+  }
+  select.innerHTML = html;
+}
+
+function caricaVolontari() {
+  const volontari = JSON.parse(localStorage.getItem('volontari') || '[]').filter(function(v) {
+    return v && v.id && v.stato === 'Attivo';
+  });
+  const select = document.getElementById('selectVolontarioAnno');
+  if (volontari.length === 0) {
+    select.innerHTML = '<option value="">Nessun volontario attivo</option>';
+    return;
+  }
+  let html = '<option value="">Scegli volontario...</option>';
+  for (let i = 0; i < volontari.length; i++) {
+    const v = volontari[i];
+    html += '<option value="' + v.id + '">' + v.nome + ' ' + v.cognome + '</option>';
+  }
+  select.innerHTML = html;
+}
+
+function caricaVolontariServizio() {
+  const servizioId = parseInt(document.getElementById('selectServizio').value);
+  const select = document.getElementById('selectVolontarioSingolo');
+  if (!servizioId) {
+    select.innerHTML = '<option value="">Prima scegli un servizio</option>';
+    return;
+  }
+  const servizi = JSON.parse(localStorage.getItem('servizi') || '[]');
+  const s = servizi.find(function(x) { return x.id === servizioId; });
+  const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+
+  if (!s.volontari || s.volontari.length === 0) {
+    select.innerHTML = '<option value="">Nessun volontario assegnato</option>';
+    return;
+  }
+
+  let html = '<option value="">Scegli volontario...</option>';
+  for (let i = 0; i < s.volontari.length; i++) {
+    const v = s.volontari[i];
+    const vol = volontari.find(function(vo) { return vo.id === v.id; });
+    if (vol) html += '<option value="' + vol.id + '">' + vol.nome + ' ' + vol.cognome + '</option>';
+  }
+  select.innerHTML = html;
+}
+
+function calcolaOre(inizio, fine) {
+  const ms = new Date(fine) - new Date(inizio);
+  return Math.round(ms / 3600000 * 10) / 10;
+}
+
+function generaAttestatoSingolo() {
+  const servizioId = parseInt(document.getElementById('selectServizio').value);
+  const volontarioId = parseInt(document.getElementById('selectVolontarioSingolo').value);
+
+  if (!servizioId ||!volontarioId) {
+    alert('Seleziona servizio e volontario');
+    return;
+  }
+
+  const servizi = JSON.parse(localStorage.getItem('servizi') || '[]');
+  const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+  const s = servizi.find(function(x) { return x.id === servizioId; });
+  const v = volontari.find(function(x) { return x.id === volontarioId; });
+
+  const numProt = getProgressivo('singolo');
+  const ore = calcolaOre(s.dataInizio, s.dataFine);
+  const dataServ = new Date(s.dataInizio).toLocaleDateString('it-IT');
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(10);
+  doc.text('Prot. n. ' + numProt, 20, 15);
+  doc.text('Data: ' + new Date().toLocaleDateString('it-IT'), 160, 15);
+
+  doc.setFontSize(22);
+  doc.text('RADIO C.B. LUNIGIANA', 105, 35, { align: 'center' });
+  doc.setFontSize(14);
+  doc.text('Organizzazione di Volontariato - Protezione Civile', 105, 43, { align: 'center' });
+
+  doc.setLineWidth(0.5);
+  doc.line(20, 48, 190, 48);
+
+  doc.setFontSize(18);
+  doc.text('ATTESTATO DI PARTECIPAZIONE', 105, 65, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.text('Si attesta che il/la volontario/a', 105, 85, { align: 'center' });
+  doc.setFontSize(16);
+  doc.text(v.nome.toUpperCase() + ' ' + v.cognome.toUpperCase(), 105, 95, { align: 'center' });
+  doc.setFontSize(11);
+  doc.text('nato/a il ' + (v.dataNascita? new Date(v.dataNascita).toLocaleDateString('it-IT') : 'N/D') + ' - C.F. ' + (v.codiceFiscale || 'N/D'), 105, 103, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.text('ha partecipato in qualità di Volontario al servizio:', 105, 118, { align: 'center' });
+
+  doc.setFontSize(14);
+  const righeTitolo = doc.splitTextToSize(s.titolo, 170);
+  doc.text(righeTitolo, 105, 128, { align: 'center' });
+
+  doc.setFontSize(11);
+  let y = 128 + (righeTitolo.length * 7);
+  doc.text('Tipologia: ' + s.tipo.replace(/_/g, ' '), 20, y);
+  doc.text('Data svolgimento: ' + dataServ, 20, y + 7);
+  doc.text('Luogo: ' + s.luogo, 20, y + 14);
+  doc.text('Durata: ' + ore + ' ore', 20, y + 21);
+  doc.text('Livello: ' + s.livello, 20, y + 28);
+
+  doc.setFontSize(10);
+  doc.text('Il presente attestato viene rilasciato per gli usi consentiti dalla legge.', 105, 250, { align: 'center' });
+  doc.text('Aulla, ' + new Date().toLocaleDateString('it-IT'), 105, 265, { align: 'center' });
+  doc.text('Il Presidente', 105, 275, { align: 'center' });
+
+  const nomeFile = numProt + '_' + v.cognome + '_' + s.titolo.replace(/ /g, '_') + '.pdf';
+  doc.save(nomeFile);
+
+  mostraAzionePost(v.email, nomeFile, v.nome + ' ' + v.cognome);
+}
+
+function generaAttestatoAnnuale() {
+  const volontarioId = parseInt(document.getElementById('selectVolontarioAnno').value);
+  const anno = document.getElementById('selectAnno').value;
+
+  if (!volontarioId ||!anno) {
+    alert('Seleziona volontario e anno');
+    return;
+  }
+
+  const servizi = JSON.parse(localStorage.getItem('servizi') || '[]');
+  const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+  const v = volontari.find(function(x) { return x.id === volontarioId; });
+
+  const serviziAnno = servizi.filter(function(s) {
+    if (s.stato!== 'Completato') return false;
+    if (!s.volontari) return false;
+    const partecipa = s.volontari.some(function(p) { return p.id === volontarioId; });
+    if (!partecipa) return false;
+    return new Date(s.dataInizio).getFullYear() == anno;
+  });
+
+  if (serviziAnno.length === 0) {
+    alert('Nessun servizio trovato per questo volontario nel ' + anno);
+    return;
+  }
+
+  const numProt = getProgressivo('annuale');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(10);
+  doc.text('Prot. n. ' + numProt, 20, 15);
+  doc.text('Data: ' + new Date().toLocaleDateString('it-IT'), 160, 15);
+
+  doc.setFontSize(20);
+  doc.text('RADIO C.B. LUNIGIANA', 105, 30, { align: 'center' });
+  doc.setFontSize(12);
+  doc.text('Organizzazione di Volontariato - Protezione Civile', 105, 37, { align: 'center' });
+
+  doc.line(20, 42, 190, 42);
+
+  doc.setFontSize(16);
+  doc.text('ATTESTATO RIEPILOGATIVO ANNUALE ' + anno, 105, 55, { align: 'center' });
+
+  doc.setFontSize(14);
+  doc.text(v.nome.toUpperCase() + ' ' + v.cognome.toUpperCase(), 105, 67, { align: 'center' });
+  doc.setFontSize(10);
+  doc.text('C.F. ' + (v.codiceFiscale || 'N/D'), 105, 74, { align: 'center' });
+
+  doc.setFontSize(11);
+  doc.text('Ha svolto attività di volontariato come di seguito riepilogato:', 20, 86);
+
+  let y = 96;
+  let totaleOre = 0;
+
+  doc.setFontSize(9);
+  doc.text('Data', 20, y);
+  doc.text('Servizio', 45, y);
+  doc.text('Luogo', 120, y);
+  doc.text('Ore', 175, y);
+  y += 2;
+  doc.line(20, y, 190, y);
+  y += 5;
+
+  for (let i = 0; i < serviziAnno.length; i++) {
+    const s = serviziAnno[i];
+    if (y > 270) { doc.addPage(); y = 20; }
+    const ore = calcolaOre(s.dataInizio, s.dataFine);
+    totaleOre += ore;
+    const data = new Date(s.dataInizio).toLocaleDateString('it-IT');
+    doc.text(data, 20, y);
+    const titoloRiga = doc.splitTextToSize(s.titolo, 70);
+    doc.text(titoloRiga, 45, y);
+    doc.text(s.luogo.substring(0, 30), 120, y);
+    doc.text(ore.toString(), 175, y);
+    y += Math.max(5, titoloRiga.length * 4);
+  }
+
+  y += 5;
+  doc.line(20, y, 190, y);
+  y += 7;
+  doc.setFontSize(11);
+  doc.text('TOTALE SERVIZI: ' + serviziAnno.length, 20, y);
+  doc.text('TOTALE ORE: ' + Math.round(totaleOre * 10) / 10 + ' h', 120, y);
+
+  doc.setFontSize(10);
+  doc.text('Aulla, ' + new Date().toLocaleDateString('it-IT'), 105, 280, { align: 'center' });
+
+  const nomeFile = numProt.replace('/', '-') + '_' + v.cognome + '_' + anno + '.pdf';
+  doc.save(nomeFile);
+
+  mostraAzionePost(v.email, nomeFile, v.nome + ' ' + v.cognome);
+}
+
+function mostraAzionePost(email, nomeFile, nomeVol) {
+  document.getElementById('azionePost').classList.remove('hidden');
+  document.getElementById('testoAzione').textContent = 'Attestato per ' + nomeVol + ' generato: ' + nomeFile;
+
+  if (email) {
+    const subject = 'Attestato di partecipazione - Radio C.B. Lunigiana';
+    const body = 'Gentile ' + nomeVol + ',\n\nIn allegato trova l\'attestato di partecipazione.\n\nCordiali saluti,\nRadio C.B. Lunigiana';
+    document.getElementById('btnMailto').href = 'mailto:' + email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    document.getElementById('btnMailto').classList.remove('hidden');
+  } else {
+    document.getElementById('btnMailto').classList.add('hidden');
+  }
+}
+
+function chiudiAzione() {
+  document.getElementById('azionePost').classList.add('hidden');
+}
+</script>
+</body>
+</html>
