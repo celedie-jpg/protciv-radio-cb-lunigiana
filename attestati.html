@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attestati - ProtCiv Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,700&display=swap');
+    
+    /* Stili per l'anteprima e la stampa */
+    .attestato-container {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      background: #525659;
+    }
+
+    .attestato-a4 {
+      width: 210mm;
+      height: 297mm;
+      background: white;
+      position: relative;
+      box-sizing: border-box;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      font-family: 'Times New Roman', serif;
+    }
+
+    .bordo-verde {
+      border: 8px solid #009246;
+      padding: 6px;
+      height: 100%;
+    }
+
+    .bordo-rosso {
+      border: 6px solid #CE2B37;
+      height: 100%;
+      padding: 40px;
+      position: relative;
+    }
+
+    .filigrana {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      font-size: 150px;
+      color: #fca5a5;
+      opacity: 0.1;
+      font-weight: 900;
+      z-index: 1;
+      pointer-events: none;
+      font-family: Arial, sans-serif;
+      white-space: nowrap;
+    }
+
+    .contenuto-attestato {
+      position: relative;
+      z-index: 10;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .titolo-attestato {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 700;
+      color: #1e3a8a;
+      text-align: center;
+    }
+
+    /* Helper per allineamento bordi durante l'esportazione */
+    .border-print { border-bottom: 1px solid black; display: inline-block; }
+  </style>
+</head>
+<body class="bg-gray-100">
+
+  <!-- PANNELLO CONTROLLO -->
+  <div id="pannelloControllo" class="max-w-5xl mx-auto m-6 bg-white rounded-xl shadow-xl p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-blue-900 flex items-center gap-3">
+        <i class="fas fa-certificate text-yellow-500"></i> Generatore Attestati Ufficiali
+      </h1>
+      <button onclick="window.location.href='index.html'" class="text-gray-500 hover:text-gray-800 transition">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Tipo Documento</label>
+        <select id="tipoAttestato" onchange="cambiaVista()" class="w-full px-4 py-2 border-2 border-gray-100 rounded-lg focus:border-blue-500 outline-none transition">
+          <option value="singolo">Singolo Servizio</option>
+          <option value="annuale">Riepilogo Annuale</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Volontario</label>
+        <select id="selectVolontario" onchange="caricaServizi()" class="w-full px-4 py-2 border-2 border-gray-100 rounded-lg focus:border-blue-500 outline-none transition">
+          <option value="">Seleziona volontario...</option>
+        </select>
+      </div>
+      <div id="selectServizioDiv">
+        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Servizio Specifico</label>
+        <select id="selectServizio" class="w-full px-4 py-2 border-2 border-gray-100 rounded-lg focus:border-blue-500 outline-none transition">
+          <option value="">Scegli prima il volontario</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-8 flex flex-wrap gap-4 border-t pt-6">
+      <button onclick="generaAnteprima()" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2">
+        <i class="fas fa-sync"></i> Genera Anteprima
+      </button>
+      <button id="btnDownload" onclick="scaricaPDF()" class="bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-emerald-700 transition flex items-center gap-2 disabled:opacity-50">
+        <i class="fas fa-file-pdf"></i> Esporta PDF Alta Qualità
+      </button>
+    </div>
+  </div>
+
+  <!-- AREA ATTESTATO -->
+  <div id="wrapperAttestato" class="attestato-container hidden">
+    <div id="attestatoStampabile" class="attestato-a4">
+      <div class="bordo-verde">
+        <div class="bordo-rosso">
+          <div class="filigrana">FIR CB</div>
+          <div class="contenuto-attestato">
+            
+            <div class="text-center mb-8">
+              <!-- Usato un placeholder, sostituisci con Base64 per evitare errori CORS -->
+              <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-28 h-28 mx-auto object-contain" crossorigin="anonymous">
+            </div>
+
+            <div class="titolo-attestato mb-10">
+              <p class="text-4xl tracking-tight">ATTESTATO DI SERVIZIO</p>
+              <p class="text-2xl mt-1">di PROTEZIONE CIVILE</p>
+              <p class="text-lg font-sans font-bold text-gray-400 mt-4" id="numeroProtocollo">Prot. ----</p>
+            </div>
+
+            <div class="text-center text-xl space-y-8 px-10 text-gray-800">
+              <p>Si attesta che il Volontario</p>
+              
+              <p class="text-3xl font-bold border-b-2 border-black inline-block px-10 pb-1 uppercase" id="nomeVolontario">
+                NOME COGNOME
+              </p>
+              
+              <p>nato/a il <span class="font-semibold" id="dataNascita">--/--/----</span> - C.F.: <span class="font-mono font-semibold" id="cfVolontario">XXXXXXXXXXXXXXXX</span></p>
+              
+              <p class="pt-4">ha prestato servizio operativo presso l'Organizzazione</p>
+              <p class="text-2xl font-bold italic text-blue-900">Associazione Radio C.B. Lunigiana</p>
+              
+              <div class="space-y-2">
+                <p class="text-lg italic underline" id="dettaglioServizio">Descrizione attività svolta</p>
+                <p class="text-lg font-semibold" id="dataOre">in data 00/00/0000 per complessive 0 ore</p>
+              </div>
+            </div>
+
+            <div class="mt-auto pb-10 px-10">
+              <div class="flex justify-between items-end">
+                <div class="text-left space-y-2">
+                  <p>Luogo: <span class="font-semibold">Licciana Nardi (MS)</span></p>
+                  <p>Data rilascio: <span class="font-semibold" id="dataRilascio">00/00/0000</span></p>
+                </div>
+                <div class="text-center w-64">
+                  <p class="mb-12">Il Presidente Legale Rappresentante</p>
+                  <div class="border-t border-black pt-1 italic text-sm">Firma autografa o digitale</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const { jsPDF } = window.jspdf;
+
+// Database locale
+let volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+let servizi = JSON.parse(localStorage.getItem('servizi') || '[]');
+let attestatiEmessi = JSON.parse(localStorage.getItem('attestati') || '[]');
+
+function init() {
+  // Controllo sicurezza rapido
+  if (localStorage.getItem('utente_ruolo') !== 'Admin') {
+    alert('Area riservata agli amministratori.');
+    window.location.href = 'index.html';
+    return;
+  }
+
+  const selVol = document.getElementById('selectVolontario');
+  selVol.innerHTML = '<option value="">-- Seleziona Volontario --</option>';
+  
+  // Popolamento select con gestione errori dati mancanti
+  volontari.sort((a,b) => (a.cognome || "").localeCompare(b.cognome || "")).forEach(v => {
+    const cf = v.cf || v.codiceFiscale || v.id;
+    const nomeCompleto = `${v.cognome || ''} ${v.nome || ''}`.trim();
+    if (cf) {
+      const opt = new Option(nomeCompleto || cf, cf);
+      selVol.add(opt);
+    }
+  });
+}
+
+function caricaServizi() {
+  const cfSelezionato = document.getElementById('selectVolontario').value;
+  const selServ = document.getElementById('selectServizio');
+  selServ.innerHTML = '<option value="">-- Seleziona Servizio --</option>';
+  
+  if (!cfSelezionato) return;
+
+  // Filtriamo solo per appartenenza, ignorando la data attuale
+  const serviziFiltrati = servizi.filter(s => {
+    const lista = s.partecipanti || s.volontari || [];
+    return lista.some(p => {
+      const cfP = (typeof p === 'string') ? p : (p.cf || p.codiceFiscale || p.id);
+      return cfP && cfP.trim().toUpperCase() === cfSelezionato.trim().toUpperCase();
+    });
+  });
+
+  if (serviziFiltrati.length === 0) {
+    selServ.innerHTML = '<option value="">Nessun servizio in archivio per questo volontario</option>';
+  } else {
+    // Ordiniamo i servizi dal più recente al più vecchio
+    serviziFiltrati.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+    serviziFiltrati.forEach(s => {
+      const desc = s.descrizione || s.tipo || 'Servizio';
+      const data = s.data || 'Data N.D.';
+      const ore = s.ore || s.durata || '0';
+      
+      const opt = document.createElement('option');
+      opt.value = s.id || Math.random().toString(36).substr(2, 9);
+      opt.textContent = `${data} - ${desc} (${ore}h)`;
+      selServ.appendChild(opt);
+    });
+  }
+}
+
+function cambiaVista() {
+  const tipo = document.getElementById('tipoAttestato').value;
+  document.getElementById('selectServizioDiv').style.visibility = (tipo === 'singolo') ? 'visible' : 'hidden';
+}
+
+function generaAnteprima() {
+  const tipo = document.getElementById('tipoAttestato').value;
+  const cf = document.getElementById('selectVolontario').value;
+  const vol = volontari.find(v => (v.cf || v.codiceFiscale || v.id) === cf);
+
+  if (!vol) return alert('Seleziona un volontario');
+
+  // Protocollo e Date
+  const dataOggi = new Date();
+  const annoCorrente = dataOggi.getFullYear();
+  document.getElementById('dataRilascio').textContent = dataOggi.toLocaleDateString('it-IT');
+  
+  // Mapping dati base
+  document.getElementById('nomeVolontario').textContent = `${vol.nome || ''} ${vol.cognome || ''}`.trim();
+  document.getElementById('cfVolontario').textContent = cf;
+
+  if (tipo === 'singolo') {
+    // ATTESTATO SINGOLO: Prende i dati dal servizio selezionato (anche se vecchio)
+    const idServ = document.getElementById('selectServizio').value;
+    const serv = servizi.find(s => (s.id || s._id) == idServ);
+    
+    if (!serv) return alert('Seleziona un servizio specifico dalla lista');
+
+    document.getElementById('dettaglioServizio').textContent = `Attività: ${serv.descrizione || serv.tipo || 'Servizio operativo'}`;
+    document.getElementById('dataOre').textContent = `Svolto in data ${serv.data} per un totale di ${serv.ore || 0} ore`;
+    document.getElementById('numeroProtocollo').textContent = `Prot. SG-${serv.data.split('-')[0]}/${Math.floor(Math.random()*1000)}`;
+    
+  } else {
+    // ATTESTATO ANNUALE: Chiediamo quale anno vogliamo attestare (default quello appena passato o corrente)
+    const annoDaAttestare = prompt("Per quale anno vuoi generare il riepilogo?", annoCorrente);
+    if (!annoDaAttestare) return;
+
+    const servAnno = servizi.filter(s => {
+      const lista = s.partecipanti || s.volontari || [];
+      const appartiene = lista.some(p => (typeof p === 'string' ? p : p.cf) === cf);
+      return appartiene && s.data.includes(annoDaAttestare);
+    });
+
+    const oreTot = servAnno.reduce((acc, s) => acc + parseFloat(s.ore || 0), 0);
+    
+    document.getElementById('dettaglioServizio').textContent = `Riepilogo attività operative svolte nell'anno ${annoDaAttestare}`;
+    document.getElementById('dataOre').textContent = `Totale servizi: ${servAnno.length} | Ore complessive: ${oreTot}`;
+    document.getElementById('numeroProtocollo').textContent = `Prot. SA-${annoDaAttestare}/${Math.floor(Math.random()*1000)}`;
+  }
+
+  document.getElementById('wrapperAttestato').classList.remove('hidden');
+}
+
+async function scaricaPDF() {
+  const btn = document.getElementById('btnDownload');
+  const originalContent = btn.innerHTML;
+  const element = document.getElementById('attestatoStampabile');
+
+  try {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Elaborazione...';
+
+    // Generazione Canvas con alta densità per stampa
+    const canvas = await html2canvas(element, {
+      scale: 3, 
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const pdf = new jsPDF({
+      orientation: 'p',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+    
+    const nomeFile = document.getElementById('nomeVolontario').textContent.trim().replace(/\s/g, '_');
+    pdf.save(`Attestato_PC_${nomeFile}.pdf`);
+
+  } catch (error) {
+    console.error("Errore PDF:", error);
+    alert("Si è verificato un errore durante la creazione del PDF.");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalContent;
+  }
+}
+
+window.onload = init;
+</script>
+
+</body>
+</html>
