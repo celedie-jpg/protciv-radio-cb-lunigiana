@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attestati - ProtCiv Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,700&display=swap');
+    
+    @media print {
+      body * { visibility: hidden; }
+      #attestatoStampabile, #attestatoStampabile * { visibility: visible; }
+      #attestatoStampabile { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+
+    .attestato-a4 {
+      width: 210mm;
+      height: 297mm;
+      background: white;
+      position: relative;
+      margin: 0 auto;
+      box-sizing: border-box;
+      font-family: 'Times New Roman', serif;
+    }
+
+    .bordo-verde {
+      border: 8px solid #009246;
+      padding: 6px;
+      height: 100%;
+    }
+
+    .bordo-rosso {
+      border: 6px solid #CE2B37;
+      height: 100%;
+      padding: 40px;
+      position: relative;
+    }
+
+    .filigrana {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 120px;
+      color: #fca5a5;
+      opacity: 0.1;
+      font-weight: 900;
+      z-index: 1;
+      pointer-events: none;
+      font-family: Arial, sans-serif;
+    }
+
+    .contenuto-attestato {
+      position: relative;
+      z-index: 10;
+    }
+
+    .titolo-attestato {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 700;
+      color: #1e3a8a;
+      text-align: center;
+      line-height: 1.3;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-4">
+
+  <!-- PANNELLO CONTROLLO -->
+  <div id="pannelloControllo" class="max-w-7xl mx-auto mb-6 bg-white rounded-lg shadow-lg p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold text-blue-900">
+        <i class="fas fa-certificate"></i> Genera Attestati di Servizio
+      </h1>
+      <button onclick="window.location.href='index.html'" class="bg-gray-600 text-white px-4 py-2 rounded">
+        <i class="fas fa-arrow-left"></i> Dashboard
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-semibold mb-2">Tipo Attestato</label>
+        <select id="tipoAttestato" onchange="cambiaVista()" class="w-full px-3 py-2 border rounded">
+          <option value="singolo">Singolo Servizio</option>
+          <option value="annuale">Riepilogo Annuale</option>
+        </select>
+      </div>
+      <div id="selectVolontarioDiv">
+        <label class="block text-sm font-semibold mb-2">Volontario</label>
+        <select id="selectVolontario" onchange="caricaServizi()" class="w-full px-3 py-2 border rounded">
+          <option value="">-- Seleziona --</option>
+        </select>
+      </div>
+      <div id="selectServizioDiv">
+        <label class="block text-sm font-semibold mb-2">Servizio</label>
+        <select id="selectServizio" class="w-full px-3 py-2 border rounded">
+          <option value="">-- Prima scegli volontario --</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-4 flex gap-3">
+      <button onclick="generaAnteprima()" class="bg-blue-900 text-white px-6 py-2 rounded hover:bg-blue-800">
+        <i class="fas fa-eye"></i> Genera Anteprima
+      </button>
+      <button onclick="scaricaPDF()" class="bg-green-700 text-white px-6 py-2 rounded hover:bg-green-600">
+        <i class="fas fa-file-pdf"></i> Scarica PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- ATTESTATO -->
+  <div id="attestatoStampabile" class="hidden">
+    <div class="attestato-a4">
+      <div class="bordo-verde">
+        <div class="bordo-rosso">
+          <div class="filigrana">FIR CB</div>
+          <div class="contenuto-attestato">
+            
+            <div class="text-center mb-6">
+              <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-24 h-24 mx-auto rounded-full object-cover" crossorigin="anonymous">
+            </div>
+
+            <div class="titolo-attestato mb-12">
+              <p class="text-4xl">ATTESTATO DI SERVIZIO</p>
+              <p class="text-3xl">di PROTEZIONE CIVILE</p>
+              <p class="text-2xl mt-2" id="numeroProtocollo">Prot. SG001</p>
+            </div>
+
+            <div class="text-center text-lg space-y-6 px-8" style="color: black;">
+              <p>Si attesta che</p>
+              
+              <p class="text-2xl font-bold border-b-2 border-black inline-block px-8 pb-1" id="nomeVolontario">
+                NOME COGNOME
+              </p>
+              
+              <p>Codice Fiscale: <span class="font-semibold border-b border-black px-4" id="cfVolontario">XXXXXX00X00X000X</span></p>
+              
+              <p class="mt-8">in qualità di Volontario di Protezione Civile</p>
+              
+              <p class="mt-6">ha prestato servizio presso <span class="font-bold">Radio C.B. Lunigiana</span></p>
+              
+              <p class="border-b border-black pb-1 mx-4" id="dettaglioServizio">
+                Descrizione servizio svolto
+              </p>
+              
+              <p class="border-b border-black pb-1 mx-4" id="dataOre">
+                in data 00/00/0000 per n. 0 ore
+              </p>
+            </div>
+
+            <div class="absolute bottom-16 left-0 right-0 px-16">
+              <div class="flex justify-between text-base">
+                <div>
+                  <p class="italic">Luogo: <span class="border-b border-black px-12">Licciana Nardi</span></p>
+                </div>
+                <div>
+                  <p class="italic">Data: <span class="border-b border-black px-12" id="dataRilascio">00/00/0000</span></p>
+                </div>
+              </div>
+              
+              <div class="text-right mt-12">
+                <p class="mb-16">Il Presidente</p>
+                <p class="border-t-2 border-black inline-block px-16 pt-1">Firma</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const { jsPDF } = window.jspdf;
+
+if (!localStorage.getItem('utente_ruolo') || localStorage.getItem('utente_ruolo') !== 'Admin') {
+  alert('Accesso negato. Solo Admin possono generare attestati.');
+  window.location.href = 'index.html';
+}
+
+let volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+let servizi = JSON.parse(localStorage.getItem('servizi') || '[]');
+
+console.log('VOLONTARI CARICATI:', volontari.length);
+console.log('SERVIZI CARICATI:', servizi.length);
+
+function init() {
+  const selVol = document.getElementById('selectVolontario');
+  selVol.innerHTML = '<option value="">-- Seleziona --</option>';
+  volontari.forEach(v => {
+    const cf = v.cf || v.codiceFiscale || v.codFisc || v.id;
+    const nome = `${v.cognome || ''} ${v.nome || ''}`.trim();
+    if (cf && nome) {
+      selVol.innerHTML += `<option value="${cf}">${nome}</option>`;
+    }
+  });
+  console.log('Volontari caricati nel select:', selVol.options.length - 1);
+}
+
+function caricaServizi() {
+  const cf = document.getElementById('selectVolontario').value;
+  const selServ = document.getElementById('selectServizio');
+  selServ.innerHTML = '<option value="">-- Seleziona servizio --</option>';
+  
+  if (!cf) return;
+  
+  console.log('Cerco servizi per CF:', cf);
+  console.log('Struttura primo servizio:', servizi[0]);
+  
+  const serviziVol = servizi.filter(s => {
+    // 1. Array di oggetti con campo cf o id
+    if (Array.isArray(s.partecipanti)) {
+      return s.partecipanti.some(p => {
+        if (typeof p === 'string') return p === cf;
+        if (typeof p === 'object') return p.cf === cf || p.id === cf || p.codiceFiscale === cf;
+        return false;
+      });
+    }
+    if (Array.isArray(s.volontari)) {
+      return s.volontari.some(p => {
+        if (typeof p === 'string') return p === cf;
+        if (typeof p === 'object') return p.cf === cf || p.id === cf || p.codiceFiscale === cf;
+        return false;
+      });
+    }
+    // 2. Campi singoli
+    if (s.cf === cf || s.codiceFiscale === cf || s.volontario === cf) return true;
+    return false;
+  });
+  
+  console.log('Servizi trovati:', serviziVol.length, serviziVol);
+  
+  if (serviziVol.length === 0) {
+    selServ.innerHTML = '<option value="">Nessun servizio trovato per questo volontario</option>';
+    return;
+  }
+  
+  serviziVol.forEach((s, idx) => {
+    const id = s.id || s._id || idx;
+    const desc = s.descrizione || s.titolo || s.tipo || s.nome || 'Servizio';
+    const data = s.data || s.dataServizio || s.dataInizio || s.giorno || '';
+    const ore = s.ore || s.durata || s.oreTotali || 0;
+    selServ.innerHTML += `<option value="${id}">${data} - ${desc} (${ore}h)</option>`;
+  });
+}
+
+
+function cambiaVista() {
+  const tipo = document.getElementById('tipoAttestato').value;
+  document.getElementById('selectServizioDiv').style.display = tipo === 'singolo' ? 'block' : 'none';
+}
+
+function generaAnteprima() {
+  const tipo = document.getElementById('tipoAttestato').value;
+  const cf = document.getElementById('selectVolontario').value;
+  const vol = volontari.find(v => (v.cf || v.codiceFiscale || v.codFisc || v.id) == cf);
+  
+  if (!vol) {
+    alert('Seleziona un volontario');
+    return;
+  }
+
+  let attestati = JSON.parse(localStorage.getItem('attestati') || '[]');
+  let numProt;
+  if (tipo === 'singolo') {
+    const sg = attestati.filter(a => a.tipo === 'SG').length + 1;
+    numProt = `SG${String(sg).padStart(3, '0')}`;
+  } else {
+    const anno = new Date().getFullYear().toString().slice(-2);
+    const sa = attestati.filter(a => a.tipo === 'SA' && a.anno === anno).length + 1;
+    numProt = `SA${anno}/${String(sa).padStart(3, '0')}`;
+  }
+
+  document.getElementById('numeroProtocollo').textContent = `Prot. ${numProt}`;
+  document.getElementById('nomeVolontario').textContent = `${vol.nome || ''} ${vol.cognome || ''}`.trim();
+  document.getElementById('cfVolontario').textContent = vol.cf || vol.codiceFiscale || vol.codFisc || '';
+
+  if (tipo === 'singolo') {
+    const idServ = document.getElementById('selectServizio').value;
+    const serv = servizi.find((s, idx) => (s.id || s._id || idx) == idServ);
+    if (!serv) {
+      alert('Seleziona un servizio');
+      return;
+    }
+    const desc = serv.descrizione || serv.titolo || serv.tipo || serv.nome || 'Servizio';
+    const data = serv.data || serv.dataServizio || serv.dataInizio || serv.giorno || '';
+    const ore = serv.ore || serv.durata || serv.oreTotali || 0;
+    document.getElementById('dettaglioServizio').textContent = desc;
+    document.getElementById('dataOre').textContent = `in data ${data} per n. ${ore} ore`;
+  } else {
+    const anno = new Date().getFullYear();
+    const servAnno = servizi.filter(s => {
+      const partecipa = s.partecipanti?.includes(cf) || s.volontari?.includes(cf) || s.volontariCf?.includes(cf) || s.cf === cf || s.codiceFiscale === cf;
+      const dataS = s.data || s.dataServizio || s.dataInizio || s.giorno || '';
+      return partecipa && String(dataS).includes(anno);
+    });
+    const totOre = servAnno.reduce((sum, s) => sum + parseFloat(s.ore || s.durata || s.oreTotali || 0), 0);
+    document.getElementById('dettaglioServizio').textContent = `Attività svolte nell'anno ${anno}`;
+    document.getElementById('dataOre').textContent = `per un totale di ${servAnno.length} servizi e ${totOre} ore`;
+  }
+
+  document.getElementById('dataRilascio').textContent = new Date().toLocaleDateString('it-IT');
+  document.getElementById('attestatoStampabile').classList.remove('hidden');
+
+  attestati.push({
+    protocollo: numProt,
+    tipo: tipo === 'singolo' ? 'SG' : 'SA',
+    anno: new Date().getFullYear().toString().slice(-2),
+    cf: cf,
+    data: new Date().toISOString()
+  });
+  localStorage.setItem('attestati', JSON.stringify(attestati));
+}
+
+function scaricaPDF() {
+  const element = document.querySelector('.attestato-a4');
+  html2canvas(element, { 
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#ffffff'
+  }).then(canvas => {
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+    const nome = document.getElementById('nomeVolontario').textContent.replace(/\s/g, '_');
+    const prot = document.getElementById('numeroProtocollo').textContent.replace('Prot. ', '');
+    pdf.save(`Attestato_${prot}_${nome}.pdf`);
+  }).catch(err => {
+    alert('Errore generazione PDF: ' + err);
+    console.error(err);
+  });
+}
+
+window.onload = init;
+</script>
+
+</body>
+</html>
