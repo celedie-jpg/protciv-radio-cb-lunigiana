@@ -1,0 +1,194 @@
+const badgeConv = s.convenzione === 'In convenzione'? '<span class="text-xs px-2 py-1 rounded bg-green-100 text-green-800 ml-2"><i class="fas fa-check"></i> In convenzione</span>' : '<span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 ml-2">Fuori convenzione</span>';
+    const badgeLiv = '<span class="text-xs px-2 py-1 rounded bg-purple-100 text-purple-800 ml-2">' + (s.livello || 'N/D') + '</span>';
+    const badgeTurni = s.tipoTurni === 'Multiplo'? '<span class="text-xs px-2 py-1 rounded bg-orange-100 text-orange-800 ml-2"><i class="fas fa-clock"></i> A Turni</span>' : '';
+
+    let listaVol = '';
+    if (s.volontari && s.volontari.length > 0) {
+      listaVol = '<div class="mt-2 text-xs text-gray-600"><i class="fas fa-users"></i> ';
+      let nomiVol = [];
+      for (let j = 0; j < s.volontari.length; j++) {
+        const v = s.volontari[j];
+        const vol = volontari.find(function(vo) { return vo.id === v.id; });
+        if (vol) nomiVol.push(vol.nome + ' ' + vol.cognome + ' [' + v.turno + ']');
+      }
+      listaVol += nomiVol.join(', ') + '</div>';
+    }
+
+    let listaMezzi = '';
+    if (s.mezzi && s.mezzi.length > 0) {
+      listaMezzi = '<div class="mt-1 text-xs text-gray-600"><i class="fas fa-truck"></i> ';
+      let nomiMezzi = [];
+      for (let j = 0; j < s.mezzi.length; j++) {
+        const id = s.mezzi[j];
+        const m = mezzi.find(function(me) { return me.id === id; });
+        if (m) nomiMezzi.push(m.tipo || m.modello || m.nome);
+      }
+      listaMezzi += nomiMezzi.join(', ') + '</div>';
+    }
+
+    let listaAttr = '';
+    if (s.attrezzature && s.attrezzature.length > 0) {
+      listaAttr = '<div class="mt-1 text-xs text-gray-600"><i class="fas fa-walkie-talkie"></i> ';
+      let nomiAttr = [];
+      for (let j = 0; j < s.attrezzature.length; j++) {
+        const id = s.attrezzature[j];
+        const a = attrezzature.find(function(at) { return at.id === id; });
+        if (a) nomiAttr.push(a.descrizione || a.modello || a.nome);
+      }
+      listaAttr += nomiAttr.join(', ') + '</div>';
+    }
+
+    html += '<div class="bg-white rounded-lg shadow p-4">';
+    html += '<div class="flex justify-between items-start mb-3"><div>';
+    html += '<h3 class="font-bold text-lg">' + s.titolo + badgeConv + badgeLiv + badgeTurni + '</h3>';
+    html += '<span class="text-xs px-2 py-1 rounded ' + coloreStato + '">' + s.stato + '</span></div>';
+    html += '<div class="flex gap-2">';
+    html += '<button onclick="mostraDettaglioServizio(' + s.id + ')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold"><i class="fas fa-eye"></i> Dettaglio</button>';
+    html += '<button onclick="esportaPDFRadio(' + s.id + ')" class="bg-orange-600 text-white px-3 py-1 rounded text-xs font-bold"><i class="fas fa-walkie-talkie"></i> PDF Radio</button>';
+    html += '<button onclick="modificaServizio(' + s.id + ')" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>';
+    html += '<button onclick="eliminaServizio(' + s.id + ')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>';
+    html += '</div></div>';
+    html += '<div class="grid grid-cols-1 lg:grid-cols-3 gap-2 text-sm">';
+    html += '<p><i class="fas fa-calendar text-gray-500"></i> ' + new Date(s.dataInizio).toLocaleString('it-IT') + '</p>';
+    html += '<p><i class="fas fa-map-marker-alt text-gray-500"></i> ' + s.luogo + '</p>';
+    html += '<p><i class="fas fa-tag text-gray-500"></i> ' + s.tipo.replace(/_/g, ' ') + '</p>';
+    html += '</div>' + listaVol + listaMezzi + listaAttr + '</div>';
+  }
+  lista.innerHTML = html;
+}
+
+function mostraDettaglioServizio(id) {
+  const servizi = JSON.parse(localStorage.getItem('servizi') || '[]');
+  const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+  const mezzi = JSON.parse(localStorage.getItem('mezzi') || '[]');
+  const attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+  const s = servizi.find(function(x) { return x.id === id; });
+  if (!s) return;
+
+  let volontariHtml = '<p class="text-gray-500 text-sm">Nessun volontario assegnato</p>';
+  if (s.volontari && s.volontari.length > 0) {
+    volontariHtml = '';
+    for (let i = 0; i < s.volontari.length; i++) {
+      const v = s.volontari[i];
+      const vol = volontari.find(function(vo) { return vo.id === v.id; });
+      if (vol) volontariHtml += '<div class="p-2 bg-gray-50 rounded text-sm mb-1"><i class="fas fa-user text-blue-500"></i> ' + vol.nome + ' ' + vol.cognome + ' <span class="text-xs text-gray-500">[' + v.turno + ']</span></div>';
+    }
+  }
+
+  let radioHtml = '';
+  if (s.radio && s.radio.length > 0) {
+    const radioOrdinate = [...s.radio].sort((a,b) => parseInt(a.identificativo) - parseInt(b.identificativo));
+    radioHtml += '<div><h4 class="font-bold text-sm mb-2 text-blue-900">Radio Assegnate:</h4>';
+    radioHtml += '<div class="bg-blue-50 p-3 rounded border border-blue-200">';
+
+    radioOrdinate.forEach(r => {
+      const vol = volontari.find(v => v.id === r.volontarioId);
+      const nomeVol = vol? vol.nome + ' ' + vol.cognome : 'Volontario rimosso';
+      const telVol = vol && vol.telefono? ' - ' + vol.telefono : '';
+
+      radioHtml += `
+        <div class="flex items-center gap-3 py-1 border-b border-blue-100 last:border-0 text-sm">
+          <i class="fas fa-walkie-talkie text-blue-600"></i>
+          <span class="font-mono font-bold text-blue-900 w-10">${r.identificativo}</span>
+          <i class="fas fa-arrow-right text-gray-400 text-xs"></i>
+          <span class="flex-1">${nomeVol}${telVol}</span>
+        </div>
+      `;
+    });
+
+    radioHtml += '</div></div>';
+  }
+
+  const html = '<div class="space-y-4">' +
+    '<div><h3 class="font-bold text-lg mb-2">' + s.titolo + '</h3>' +
+    '<div class="flex gap-2 mb-3">' +
+    '<span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">' + s.tipo.replace(/_/g, ' ') + '</span>' +
+    '<span class="text-xs px-2 py-1 rounded bg-green-100 text-green-800">' + s.convenzione + '</span>' +
+    '</div><p class="text-sm border-t pt-2">' + (s.descrizione || 'Nessuna descrizione') + '</p></div>' +
+    '<div><h4 class="font-bold text-sm mb-2">Volontari Assegnati:</h4>' + volontariHtml + '</div>' +
+    radioHtml +
+    '</div>';
+
+  document.getElementById('contenutoDettaglio').innerHTML = html;
+  document.getElementById('modalDettaglio').classList.remove('hidden');
+}
+
+function chiudiModal() {
+  document.getElementById('modalDettaglio').classList.add('hidden');
+}
+
+function esportaPDF() {
+  alert("Generazione PDF in corso...");
+}
+
+function esportaPDFRadio(id) {
+  const servizi = JSON.parse(localStorage.getItem('servizi') || '[]');
+  const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+  const s = servizi.find(x => x.id === id);
+
+  if (!s ||!s.radio || s.radio.length === 0) {
+    alert('Nessuna radio assegnata a questo servizio');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('ASSEGNAZIONE RADIO', 105, 20, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.text(s.titolo, 105, 30, { align: 'center' });
+
+  doc.setFontSize(10);
+  const dataServizio = new Date(s.dataInizio).toLocaleString('it-IT', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+  doc.text(`Data: ${dataServizio} | Luogo: ${s.luogo}`, 105, 38, { align: 'center' });
+
+  doc.line(20, 42, 190, 42);
+
+  let y = 55;
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Radio', 25, y);
+  doc.text('Volontario Assegnato', 60, y);
+  doc.text('Telefono', 140, y);
+  y += 3;
+  doc.line(20, y, 190, y);
+  y += 7;
+
+  doc.setFont('helvetica', 'normal');
+  s.radio.sort((a,b) => parseInt(a.identificativo) - parseInt(b.identificativo));
+
+  s.radio.forEach(r => {
+    const vol = volontari.find(v => v.id === r.volontarioId);
+    const nomeVol = vol? `${vol.nome} ${vol.cognome}` : 'N/D';
+    const telVol = vol && vol.telefono? vol.telefono : '---';
+
+    doc.setFont('helvetica', 'bold');
+    doc.text(r.identificativo, 25, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(nomeVol, 60, y);
+    doc.text(telVol, 140, y);
+
+    y += 8;
+    if (y > 270) {
+      doc.addPage();
+      y = 20;
+    }
+  });
+
+  const dataStampa = new Date().toLocaleString('it-IT');
+  doc.setFontSize(8);
+  doc.text(`Stampato il ${dataStampa} - Radio C.B. Lunigiana`, 105, 285, { align: 'center' });
+
+  const nomeFile = `Assegnazione_Radio_${s.titolo.replace(/[^a-z0-9]/gi, '_')}_${new Date(s.dataInizio).toLocaleDateString('it-IT').replace(/\//g, '-')}.pdf`;
+  doc.save(nomeFile);
+}
+</script>
+</body>
+</html>
