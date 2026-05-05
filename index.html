@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Radio C.B. Lunigiana</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+  <div class="lg:hidden bg-blue-900 text-white p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-50">
+    <button onclick="toggleMenu()" class="text-2xl"><i class="fas fa-bars"></i></button>
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+      <span class="font-bold text-sm">Radio C.B. Lunigiana</span>
+    </a>
+    <a href="login.html" class="text-xl"><i class="fas fa-sign-out-alt"></i></a>
+  </div>
+
+  <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-blue-900 text-white transform -translate-x-full lg:translate-x-0 transition-transform duration-200 z-40 overflow-y-auto">
+    <div class="p-5 border-b border-blue-800 mt-16 lg:mt-0 text-center">
+      <a href="index.html">
+        <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-16 h-16 mx-auto mb-2 rounded-full object-cover hover:opacity-80">
+        <h2 class="text-xl font-bold hover:text-blue-200">ProtCiv Manager</h2>
+      </a>
+    </div>
+    <nav class="p-4">
+      <a href="index.html" class="flex items-center gap-3 p-3 rounded bg-blue-800 mb-2"><i class="fas fa-home w-5"></i> Dashboard</a>
+      <a href="servizi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-tasks w-5"></i> Servizi</a>
+      <a href="volontari.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-users w-5"></i> Volontari</a>
+      <a href="attestati.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-certificate w-5"></i> Attestati</a>
+      <a href="corsi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-graduation-cap w-5"></i> Corsi</a>
+      <a href="responsabili.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-user-tie w-5"></i> Responsabili</a>
+      <a href="mezzi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-truck w-5"></i> Mezzi</a>
+      <a href="attrezzature.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-walkie-talkie w-5"></i> Attrezzature</a>
+      <a href="colonna_mobile.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-people-group w-5"></i> Colonna Mobile</a>
+      <a href="report.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-file-pdf w-5"></i> Report</a>
+      <div class="border-t border-blue-800 my-3"></div>
+      <a href="#" onclick="scaricaBackup(); return false;" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2">
+        <i class="fas fa-download w-5"></i> Scarica Backup
+      </a>
+      <label class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2 cursor-pointer">
+        <i class="fas fa-upload w-5"></i> Carica Backup
+        <input type="file" accept=".json" onchange="caricaBackup(event)" class="hidden">
+      </label>
+      <a href="login.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mt-4"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+    </nav>
+  </div>
+
+  <div id="overlay" onclick="toggleMenu()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>
+
+  <div class="lg:ml-64 pt-20 lg:pt-8 p-4 lg:p-8">
+    <div class="mb-6">
+      <h1 class="text-xl lg:text-2xl font-bold text-gray-800">Gestionale Radio C.B. Lunigiana</h1>
+      <p class="text-gray-600 text-sm">Riepilogo operativo</p>
+    </div>
+
+    <!-- Card in alto - Torno a 5 colonne -->
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <div onclick="mostraDettaglio('volontari')" class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500 cursor-pointer hover:shadow-lg transition">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-xs">Volontari Attivi</p>
+            <p class="text-2xl font-bold text-gray-800" id="totVolontari">0</p>
+          </div>
+          <i class="fas fa-users text-3xl text-blue-500"></i>
+        </div>
+      </div>
+
+      <div onclick="mostraDettaglio('servizi')" class="bg-white rounded-lg shadow p-4 border-l-4 border-red-500 cursor-pointer hover:shadow-lg transition">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-xs">Servizi Mese</p>
+            <p class="text-2xl font-bold text-gray-800" id="totServizi">0</p>
+          </div>
+          <i class="fas fa-tasks text-3xl text-red-500"></i>
+        </div>
+      </div>
+
+      <div onclick="mostraDettaglio('mezzi')" class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500 cursor-pointer hover:shadow-lg transition">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-xs">Mezzi Operativi</p>
+            <p class="text-2xl font-bold text-gray-800" id="totMezzi">0</p>
+          </div>
+          <i class="fas fa-truck text-3xl text-green-500"></i>
+        </div>
+      </div>
+
+      <div onclick="mostraDettaglio('corsi')" class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500 cursor-pointer hover:shadow-lg transition">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-xs">Corsi Attivi</p>
+            <p class="text-2xl font-bold text-gray-800" id="totCorsi">0</p>
+          </div>
+          <i class="fas fa-graduation-cap text-3xl text-purple-500"></i>
+        </div>
+      </div>
+
+      <div onclick="mostraDettaglio('attrezzature')" class="bg-white rounded-lg shadow p-4 border-l-4 border-orange-500 cursor-pointer hover:shadow-lg transition">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-xs">Attrezzature</p>
+            <p class="text-2xl font-bold text-gray-800" id="totAttrezzature">0</p>
+          </div>
+          <i class="fas fa-walkie-talkie text-3xl text-orange-500"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Box Servizi Oggi -->
+    <div class="bg-white rounded-lg shadow p-5 mb-6">
+      <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <i class="fas fa-calendar-day text-red-600"></i> Servizi Oggi
+      </h2>
+      <div id="serviziOggi" class="space-y-2">
+        <p class="text-gray-500 text-sm">Nessun servizio programmato per oggi</p>
+      </div>
+    </div>
+
+    <!-- Box CMN Attivi - NUOVO -->
+    <div class="bg-white rounded-lg shadow p-5 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+          <i class="fas fa-people-group text-violet-600"></i> Colonna Mobile Nazionale
+        </h2>
+        <a href="colonna_mobile.html" class="text-sm text-violet-600 hover:text-violet-800 font-semibold">
+          Gestisci <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+      </div>
+      <div id="cmnOggi" class="space-y-2">
+        <p class="text-gray-500 text-sm">Nessun volontario CMN attivo oggi</p>
+      </div>
+    </div>
+
+    <!-- Box Attestati in Scadenza -->
+    <div class="bg-white rounded-lg shadow p-5 mb-6">
+      <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <i class="fas fa-exclamation-triangle text-yellow-600"></i> Attestati in Scadenza
+      </h2>
+      <div id="scadenzeAttestati" class="space-y-2">
+        <p class="text-gray-500 text-sm">Nessun attestato in scadenza nei prossimi 60 giorni</p>
+      </div>
+    </div>
+
+    <!-- Box Riepilogo Mensile -->
+    <div class="bg-white rounded-lg shadow p-5">
+      <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <i class="fas fa-chart-bar text-blue-600"></i> Riepilogo Mensile
+      </h2>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="text-center p-3 bg-blue-50 rounded">
+          <p class="text-2xl font-bold text-blue-600" id="riepServizi">0</p>
+          <p class="text-xs text-gray-600">Servizi Totali</p>
+        </div>
+        <div class="text-center p-3 bg-green-50 rounded">
+          <p class="text-2xl font-bold text-green-600" id="riepOre">0</p>
+          <p class="text-xs text-gray-600">Ore Volontariato</p>
+        </div>
+        <div class="text-center p-3 bg-purple-50 rounded">
+          <p class="text-2xl font-bold text-purple-600" id="riepCorsi">0</p>
+          <p class="text-xs text-gray-600">Corsi Svolti</p>
+        </div>
+        <div class="text-center p-3 bg-orange-50 rounded">
+          <p class="text-2xl font-bold text-orange-600" id="riepVol">0</p>
+          <p class="text-xs text-gray-600">Vol. Attivi</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ANTEPRIMA -->
+  <div id="modalCard" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onclick="chiudiModal()">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[70vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+      <div class="bg-blue-900 text-white p-4 flex justify-between items-center">
+        <h2 class="text-lg font-bold" id="modalTitolo">Anteprima</h2>
+        <button onclick="chiudiModal()" class="text-2xl hover:text-gray-200">&times;</button>
+      </div>
+      <div id="modalContenuto" class="p-4 overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <script>
+    let datiGlobali = { volontari: [], servizi: [], mezzi: [], corsi: [], attrezzature: [], cmn: [] };
+
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+      document.getElementById('overlay').classList.toggle('hidden');
+    }
+
+    function caricaDashboard() {
+      datiGlobali.volontari = JSON.parse(localStorage.getItem('volontari') || localStorage.getItem('volontariList') || '[]');
+      datiGlobali.servizi = JSON.parse(localStorage.getItem('servizi') || localStorage.getItem('serviziList') || localStorage.getItem('attivita') || '[]');
+      datiGlobali.mezzi = JSON.parse(localStorage.getItem('mezzi') || '[]');
+      datiGlobali.corsi = JSON.parse(localStorage.getItem('corsi') || '[]');
+      datiGlobali.attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+      datiGlobali.cmn = JSON.parse(localStorage.getItem('cmn') || '[]');
+
+      const oggi = new Date();
+      const oggiStr = oggi.toISOString().split('T')[0];
+      const meseCorrente = oggi.getMonth();
+      const annoCorrente = oggi.getFullYear();
+
+      function getDataServizio(s) {
+        const dataStr = s.data || s.dataInizio || s.dataServizio || s.giorno || s.dataOra;
+        return dataStr? new Date(dataStr) : null;
+      }
+
+      const volontariAttivi = datiGlobali.volontari.filter(v => v.stato === 'Attivo' || v.attivo!== false);
+      document.getElementById('totVolontari').textContent = volontariAttivi.length;
+
+      const corsiAttivi = datiGlobali.corsi.filter(c => {
+        if (!c.haScadenza) return true;
+        if (!c.dataScadenzaCorso) return true;
+        return new Date(c.dataScadenzaCorso) >= oggi;
+      });
+      document.getElementById('totCorsi').textContent = corsiAttivi.length;
+
+      document.getElementById('totMezzi').textContent = datiGlobali.mezzi.filter(m => m.stato === 'Operativo' || m.stato === 'Disponibile').length;
+      document.getElementById('totAttrezzature').textContent = datiGlobali.attrezzature.length;
+
+      const serviziMese = datiGlobali.servizi.filter(s => {
+        const d = getDataServizio(s);
+        return d &&!isNaN(d) && d.getMonth() === meseCorrente && d.getFullYear() === annoCorrente;
+      });
+      document.getElementById('totServizi').textContent = serviziMese.length;
+
+      const serviziOggi = datiGlobali.servizi.filter(s => {
+        const d = getDataServizio(s);
+        return d &&!isNaN(d) && d.toISOString().split('T')[0] === oggiStr;
+      });
+
+      const divServiziOggi = document.getElementById('serviziOggi');
+      if (serviziOggi.length === 0) {
+        divServiziOggi.innerHTML = '<p class="text-gray-500 text-sm">Nessun servizio programmato per oggi</p>';
+      } else {
+        divServiziOggi.innerHTML = serviziOggi.map(s => `
+          <div class="flex justify-between items-center p-3 bg-teal-50 rounded border-l-4 border-teal-500">
+            <div>
+              <p class="font-semibold text-sm text-gray-800">${s.titolo || s.descrizione || s.tipo || 'Servizio'}</p>
+              <p class="text-xs text-gray-600">${s.ora || s.oraInizio || 'Orario non specificato'} - ${s.luogo || 'Luogo non specificato'}</p>
+            </div>
+            <span class="text-xs font-bold text-teal-700">${s.volontari?.length || 0} vol.</span>
+          </div>
+        `).join('');
+      }
+
+      // CMN ATTIVI OGGI - NUOVO BLOCCO
+      const cmnAttivi = datiGlobali.cmn.filter(d => d.dal <= oggiStr && d.al >= oggiStr);
+      const divCmnOggi = document.getElementById('cmnOggi');
+      if (cmnAttivi.length === 0) {
+        divCmnOggi.innerHTML = '<p class="text-gray-500 text-sm">Nessun volontario CMN attivo oggi</p>';
+      } else {
+        divCmnOggi.innerHTML = cmnAttivi.map(d => {
+          const v = datiGlobali.volontari.find(x => x.id === d.volontario_id);
+          return `
+            <div class="flex justify-between items-center p-3 bg-violet-50 rounded border-l-4 border-violet-500">
+              <div>
+                <p class="font-semibold text-sm text-gray-800">${v? v.nome + ' ' + v.cognome : 'Volontario N/D'}</p>
+                <p class="text-xs text-gray-600">Team: ${d.team || 'Non specificato'}</p>
+              </div>
+              <span class="text-xs font-bold text-violet-700">fino al ${d.al.split('-').reverse().join('/')}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const prossimi60gg = new Date(oggi.getTime() + 60 * 24 * 60 * 60 * 1000);
+      let scadenzeAtt = [];
+
+      datiGlobali.corsi.forEach(c => {
+        if (!c.haScadenza) return;
+        c.partecipanti?.forEach(p => {
+          if (!p.dataScadenza) return;
+          const scad = new Date(p.dataScadenza);
+          if (scad >= oggi && scad <= prossimi60gg) {
+            scadenzeAtt.push({
+              nome: p.nome,
+              corso: c.titolo,
+              scadenza: scad,
+              numRinnovi: p.numRinnovi || 0
+            });
+          }
+        });
+      });
+
+      const divScad = document.getElementById('scadenzeAttestati');
+      if (scadenzeAtt.length === 0) {
+        divScad.innerHTML = '<p class="text-gray-500 text-sm">Nessun attestato in scadenza nei prossimi 60 giorni</p>';
+      } else {
+        scadenzeAtt.sort((a,b) => a.scadenza - b.scadenza);
+        divScad.innerHTML = scadenzeAtt.map(s => {
+          const giorni = Math.ceil((s.scadenza - oggi) / (1000 * 60 * 60 * 24));
+          const colore = giorni <= 15? 'bg-red-100 text-red-800' : giorni <= 30? 'bg-orange-100 text-orange-800' : 'bg-yellow-100 text-yellow-800';
+          return `
+            <div class="flex justify-between items-center p-2 rounded ${colore}">
+              <div>
+                <p class="font-semibold text-sm">${s.nome}</p>
+                <p class="text-xs">${s.corso} ${s.numRinnovi > 0? `(${s.numRinnovi} rinnovi)` : ''}</p>
+              </div>
+              <span class="text-xs font-bold">${giorni} gg</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const oreTotali = serviziMese.reduce((sum, s) => {
+        const ore = parseFloat(s.ore || s.durata || s.oreTotali || s.h || 0);
+        if (ore > 0) return sum + ore;
+        const inizio = new Date(s.dataInizio || s.data);
+        const fine = new Date(s.dataFine || s.data);
+        if (!isNaN(fine) &&!isNaN(inizio)) return sum + (fine - inizio) / (1000 * 60 * 60);
+        return sum;
+      }, 0);
+
+      document.getElementById('riepServizi').textContent = serviziMese.length;
+      document.getElementById('riepOre').textContent = Math.round(oreTotali);
+      document.getElementById('riepCorsi').textContent = corsiAttivi.length;
+      document.getElementById('riepVol').textContent = volontariAttivi.length;
+    }
+
+    function mostraDettaglio(tipo) {
+      const modal = document.getElementById('modalCard');
+      const titolo = document.getElementById('modalTitolo');
+      const contenuto = document.getElementById('modalContenuto');
+      let html = '';
+
+      if (tipo === 'volontari') {
+        titolo.textContent = 'Volontari Attivi';
+        const attivi = datiGlobali.volontari.filter(v => v.stato === 'Attivo' || v.attivo!== false);
+        if (attivi.length === 0) {
+          html = '<p class="text-gray-500 text-center py-8">Nessun volontario attivo</p>';
+        } else {
+          html = '<div class="space-y-1">' + attivi.map(v => `
+            <div class="p-2 hover:bg-gray-50 rounded text-sm">
+              ${v.nome || ''} ${v.cognome || ''}
+            </div>
+          `).join('') + '</div>';
+        }
+      } else if (tipo === 'servizi') {
+        titolo.textContent = 'Servizi del Mese';
+        const oggi = new Date();
+        const serviziMese = datiGlobali.servizi.filter(s => {
+          const d = new Date(s.data || s.dataInizio || s.dataServizio || s.giorno || s.dataOra);
+          return d &&!isNaN(d) && d.getMonth() === oggi.getMonth() && d.getFullYear() === oggi.getFullYear();
+        });
+        if (serviziMese.length === 0) {
+          html = '<p class="text-gray-500 text-center py-8">Nessun servizio questo mese</p>';
+        } else {
+          html = '<div class="space-y-1">' + serviziMese.map(s => {
+            const d = new Date(s.data || s.dataInizio || s.dataServizio || s.giorno || s.dataOra);
+            return `<div class="p-2 hover:bg-gray-50 rounded text-sm">${d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} - ${s.titolo || s.descrizione || s.tipo || 'Servizio'}</div>`;
+          }).join('') + '</div>';
+        }
+      } else if (tipo === 'mezzi') {
+        titolo.textContent = 'Mezzi Operativi';
+        const operativi = datiGlobali.mezzi.filter(m => m.stato === 'Operativo' || m.stato === 'Disponibile');
+        if (operativi.length === 0) {
+          html = '<p class="text-gray-500 text-center py-8">Nessun mezzo operativo</p>';
+        } else {
+          html = '<div class="space-y-1">' + operativi.map(m => `
+            <div class="p-2 hover:bg-gray-50 rounded text-sm">
+              ${m.modello || m.tipo || m.nome || 'Mezzo'}
+            </div>
+          `).join('') + '</div>';
+        }
+      } else if (tipo === 'corsi') {
+        titolo.textContent = 'Corsi Attivi';
+        const oggi = new Date();
+        const attivi = datiGlobali.corsi.filter(c => {
+          if (!c.haScadenza) return true;
+          if (!c.dataScadenzaCorso) return true;
+          return new Date(c.dataScadenzaCorso) >= oggi;
+        });
+        if (attivi.length === 0) {
+          html = '<p class="text-gray-500 text-center py-8">Nessun corso attivo</p>';
+        } else {
+          html = '<div class="space-y-1">' + attivi.map(c => `
+            <div class="p-2 hover:bg-gray-50 rounded text-sm">
+              ${c.titolo} ${!c.haScadenza? '<span class="text-xs text-blue-600">(Permanente)</span>' : ''}
+            </div>
+          `).join('') + '</div>';
+        }
+      } else if (tipo === 'attrezzature') {
+        titolo.textContent = 'Attrezzature';
+        if (datiGlobali.attrezzature.length === 0) {
+          html = '<p class="text-gray-500 text-center py-8">Nessuna attrezzatura</p>';
+        } else {
+          html = '<div class="space-y-1">' + datiGlobali.attrezzature.map(a => `
+            <div class="p-2 hover:bg-gray-50 rounded text-sm">
+              ${a.descrizione || a.modello || a.nome || 'Attrezzatura'}
+            </div>
+          `).join('') + '</div>';
+        }
+      }
+
+      contenuto.innerHTML = html;
+      modal.classList.remove('hidden');
+    }
+
+    function chiudiModal() {
+      document.getElementById('modalCard').classList.add('hidden');
+    }
+
+    function scaricaBackup() {
+      const dati = {
+        volontari: JSON.parse(localStorage.getItem('volontari') || '[]'),
+        corsi: JSON.parse(localStorage.getItem('corsi') || '[]'),
+        responsabili: JSON.parse(localStorage.getItem('responsabili') || '[]'),
+        mezzi: JSON.parse(localStorage.getItem('mezzi') || '[]'),
+        attrezzature: JSON.parse(localStorage.getItem('attrezzature') || '[]'),
+        servizi: JSON.parse(localStorage.getItem('servizi') || localStorage.getItem('serviziList') || '[]'),
+        cmn: JSON.parse(localStorage.getItem('cmn') || '[]'),
+        dataBackup: new Date().toISOString(),
+        versione: '2.0'
+      };
+      const blob = new Blob([JSON.stringify(dati, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_protciv_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      alert('Backup scaricato con successo!\n\nSalvalo su Google Drive o PC per sicurezza.');
+    }
+
+    function caricaBackup(e) {
+      const file = e.target.files;
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const dati = JSON.parse(event.target.result);
+          if (!confirm('ATTENZIONE: Questa operazione sovrascrive TUTTI i dati attuali.\n\nSei sicuro di voler ripristinare il backup?')) {
+            e.target.value = '';
+            return;
+          }
+          localStorage.setItem('volontari', JSON.stringify(dati.volontari || []));
+          localStorage.setItem('corsi', JSON.stringify(dati.corsi || []));
+          localStorage.setItem('responsabili', JSON.stringify(dati.responsabili || []));
+          localStorage.setItem('mezzi', JSON.stringify(dati.mezzi || []));
+          localStorage.setItem('attrezzature', JSON.stringify(dati.attrezzature || []));
+          localStorage.setItem('servizi', JSON.stringify(dati.servizi || []));
+          localStorage.setItem('cmn', JSON.stringify(dati.cmn || []));
+          alert('Backup ripristinato correttamente!\nLa pagina verrà ricaricata.');
+          location.reload();
+        } catch (err) {
+          alert('Errore: File di backup non valido');
+          e.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    caricaDashboard();
+  </script>
+</body>
+</html>
