@@ -1,0 +1,63 @@
+function mostraFormNuovo() {
+    const form = document.getElementById('formNuovoCorso');
+    const btn = document.getElementById('btnToggleForm');
+    const boxBottoni = document.getElementById('boxBottoni');
+    const boxFiltri = document.getElementById('boxFiltri');
+    const listaCorsi = document.getElementById('listaCorsiContainer');
+
+    if (!form || !btn) return;
+
+    // 1. Reset e Visualizzazione Form
+    form.classList.remove('hidden');
+    document.getElementById('formCorso').reset();
+    document.getElementById('titoloForm').textContent = 'Nuovo Corso';
+    partecipantiTemp = [];
+    editId = null;
+    renderPartecipantiTemp();
+
+    // 2. Nascondi elementi lista e filtri
+    if (boxFiltri) boxFiltri.classList.add('hidden');
+    if (listaCorsi) listaCorsi.classList.add('hidden');
+
+    // 3. Gestione Pulsanti: Nascondi tutti tranne il Toggle
+    const tuttiIBottoni = boxBottoni.children;
+    for (let i = 0; i < tuttiIBottoni.length; i++) {
+        if (tuttiIBottoni[i].id !== 'btnToggleForm') {
+            tuttiIBottoni[i].classList.add('hidden');
+        }
+    }
+
+    // 4. Trasforma il pulsante in "Indietro" testuale blu
+    // Rimuoviamo le classi di sfondo e padding del bottone rosso
+    btn.className = "text-blue-800 hover:text-blue-900 font-bold flex items-center gap-2 text-sm transition-all bg-transparent border-none p-0";
+    btn.innerHTML = '<i class="fas fa-arrow-left"></i> Indietro';
+    btn.onclick = annullaForm;
+
+    window.scrollTo(0, 0);
+}
+
+function annullaForm() {
+    const form = document.getElementById('formNuovoCorso');
+    const btn = document.getElementById('btnToggleForm');
+    const boxBottoni = document.getElementById('boxBottoni');
+    const boxFiltri = document.getElementById('boxFiltri');
+    const listaCorsi = document.getElementById('listaCorsiContainer');
+
+    if (!form || !btn) return;
+
+    // 1. Nascondi Form e ripristina liste
+    form.classList.add('hidden');
+    if (boxFiltri) boxFiltri.classList.remove('hidden');
+    if (listaCorsi) listaCorsi.classList.remove('hidden');
+
+    // 2. Ripristina tutti i pulsanti della toolbar
+    const tuttiIBottoni = boxBottoni.children;
+    for (let i = 0; i < tuttiIBottoni.length; i++) {
+        tuttiIBottoni[i].classList.remove('hidden');
+    }
+
+    // 3. Ripristina il pulsante "Nuovo Corso" originale (Rosso)
+    btn.className = "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm transition-colors";
+    btn.innerHTML = '<i class="fas fa-plus"></i> Nuovo Corso';
+    btn.onclick = mostraFormNuovo;
+}
