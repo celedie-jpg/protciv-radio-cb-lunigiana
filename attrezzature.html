@@ -1,0 +1,748 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attrezzature - Radio C.B. Lunigiana</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-gray-100">
+
+  <div class="lg:hidden bg-blue-900 text-white p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-50">
+    <button onclick="toggleMenu()" class="text-2xl"><i class="fas fa-bars"></i></button>
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+      <span class="font-bold text-sm">Radio C.B. Lunigiana</span>
+    </a>
+    <a href="login.html" class="text-xl"><i class="fas fa-sign-out-alt"></i></a>
+  </div>
+
+  <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-blue-900 text-white transform -translate-x-full lg:translate-x-0 transition-transform duration-200 z-40 overflow-y-auto">
+    <div class="p-5 border-b border-blue-800 mt-16 lg:mt-0 text-center">
+      <a href="index.html">
+        <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-16 h-16 mx-auto mb-2 rounded-full object-cover hover:opacity-80">
+        <h2 class="text-xl font-bold hover:text-blue-200">ProtCiv Manager</h2>
+      </a>
+    </div>
+    <nav class="p-4">
+      <a href="index.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-home w-5"></i> Dashboard</a>
+      <a href="servizi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-tasks w-5"></i> Servizi</a>
+      <a href="volontari.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-users w-5"></i> Volontari</a>
+      <a href="corsi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-graduation-cap w-5"></i> Corsi</a>
+      <a href="responsabili.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-user-tie w-5"></i> Responsabili</a>
+      <a href="mezzi.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-truck w-5"></i> Mezzi</a>
+      <a href="attrezzature.html" class="flex items-center gap-3 p-3 rounded bg-blue-800 mb-2"><i class="fas fa-walkie-talkie w-5"></i> Attrezzature</a>
+      <a href="report.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2"><i class="fas fa-file-pdf w-5"></i> Report</a>
+      <div class="border-t border-blue-800 my-3"></div>
+      <a href="#" onclick="scaricaBackup(); return false;" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2">
+        <i class="fas fa-download w-5"></i> Scarica Backup
+      </a>
+      <label class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mb-2 cursor-pointer">
+        <i class="fas fa-upload w-5"></i> Carica Backup
+        <input type="file" accept=".json" onchange="caricaBackup(event)" class="hidden">
+      </label>
+      <a href="login.html" class="flex items-center gap-3 p-3 rounded hover:bg-blue-800 mt-4"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+    </nav>
+  </div>
+
+  <div id="overlay" onclick="toggleMenu()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>
+
+  <div class="lg:ml-64 pt-20 lg:pt-8 p-4 lg:p-8">
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-3">
+      <div>
+        <a href="index.html" class="text-blue-600 text-sm mb-1 block"><i class="fas fa-arrow-left"></i> Torna alla Dashboard</a>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-800">Gestione Attrezzature</h1>
+      </div>
+      <div class="flex gap-2" id="boxBottoni">
+  <button id="btnExportPDF" onclick="esportaInventarioPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold text-sm">
+    <i class="fas fa-file-pdf"></i> Esporta PDF
+  </button>
+  <button id="btnToggleForm" onclick="mostraForm()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded font-bold text-sm">
+    <i class="fas fa-plus"></i> Nuova Attrezzatura
+  </button>
+</div>
+    </div>
+
+    <div id="alertScadenze" class="hidden bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded">
+      <div class="flex items-center">
+        <i class="fas fa-exclamation-triangle text-red-500 text-xl mr-3"></i>
+        <div>
+          <p class="font-bold text-red-800">Attenzione: Revisioni in scadenza</p>
+          <p class="text-sm text-red-700" id="testoAlertScadenze"></p>
+        </div>
+      </div>
+    </div>
+
+    <div id="formAttrezzatura" class="bg-white rounded-lg shadow p-5 mb-6 hidden">
+      <h2 class="text-lg font-bold text-gray-800 mb-4" id="titoloForm">Nuova Attrezzatura</h2>
+      <form onsubmit="salvaAttrezzatura(event)">
+        <input type="hidden" id="idAttrezzatura">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
+            <select id="categoria" onchange="aggiornaSottocategoria()" class="w-full border rounded p-2 text-sm" required>
+              <option value="">Seleziona categoria</option>
+              <option value="Radio">Radio</option>
+              <option value="Motosega">Motosega</option>
+              <option value="DPI">DPI</option>
+              <option value="Antenne">Antenne</option>
+              <option value="Materiale Elettrico">Materiale Elettrico</option>
+              <option value="Materiale Idro">Materiale Idro</option>
+              <option value="Materiale Logistico">Materiale Logistico</option>
+              <option value="Altro">Altro</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
+            <select id="sottocategoria" class="w-full border rounded p-2 text-sm" required>
+              <option value="">Seleziona prima la categoria</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Modello *</label>
+            <input type="text" id="modello" placeholder="Es. Yaesu FT-65" class="w-full border rounded p-2 text-sm" required>
+          </div>
+          <div id="campoSeriale">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Matricola/Seriale</label>
+            <input type="text" id="seriale" placeholder="Numero seriale" class="w-full border rounded p-2 text-sm">
+          </div>
+          <div id="campoQuantita" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Quantità *</label>
+            <input type="number" id="quantita" min="1" value="1" class="w-full border rounded p-2 text-sm">
+          </div>
+          <div id="campoDisponibili" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Disponibili</label>
+            <input type="number" id="disponibili" min="0" value="1" class="w-full border rounded p-2 text-sm">
+          </div>
+          <div id="campoIdRadio" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">ID Radio</label>
+            <input type="text" id="idRadio" placeholder="ID radio interno" class="w-full border rounded p-2 text-sm">
+          </div>
+          <div id="campoIdentificativo" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Identificativo</label>
+            <input type="text" id="identificativo" placeholder="Es: LUNIGIANA1" class="w-full border rounded p-2 text-sm">
+          </div>
+          <div id="campoFrequenza" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Frequenza/Banda</label>
+            <select id="frequenza" class="w-full border rounded p-2 text-sm">
+              <option value="">Seleziona</option>
+              <option value="VHF">VHF</option>
+              <option value="UHF">UHF</option>
+              <option value="PMR-LPD">PMR-LPD</option>
+            </select>
+          </div>
+          <div id="campoDescrizioneDPI" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Descrizione DPI</label>
+            <input type="text" id="descrizioneDPI" placeholder="Es. Casco con visiera e cuffie integrate" class="w-full border rounded p-2 text-sm">
+          </div>
+          <div id="campoRevisione" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Scadenza Revisione</label>
+            <input type="date" id="revisione" class="w-full border rounded p-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Stato *</label>
+            <select id="stato" class="w-full border rounded p-2 text-sm" required>
+              <option value="Operativo">Operativo</option>
+              <option value="In Manutenzione">In Manutenzione</option>
+              <option value="Guasto">Guasto</option>
+              <option value="Dismesso">Dismesso</option>
+            </select>
+          </div>
+          <div class="lg:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Foto attrezzatura</label>
+            <input type="file" id="foto" accept="image/*" onchange="previewFoto(event)" class="w-full border rounded p-2 text-sm">
+            <img id="previewFoto" class="hidden mt-2 max-h-32 rounded">
+          </div>
+          <div class="lg:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
+            <textarea id="note" placeholder="Note aggiuntive" class="w-full border rounded p-2 text-sm" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-4">
+          <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded font-bold text-sm">Salva</button>
+          <button type="button" onclick="nascondiForm()" class="bg-gray-400 text-white px-4 py-2 rounded font-bold text-sm">Annulla</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 mb-4" id="boxFiltri">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-3">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-filter text-gray-600"></i>
+          <select id="filtroCategoria" onchange="caricaAttrezzature()" class="border rounded p-2 text-sm flex-1">
+            <option value="">Tutte le categorie</option>
+            <option value="Radio">Radio</option>
+            <option value="Motosega">Motosega</option>
+            <option value="DPI">DPI</option>
+            <option value="Antenne">Antenne</option>
+            <option value="Materiale Elettrico">Materiale Elettrico</option>
+            <option value="Materiale Idro">Materiale Idro</option>
+            <option value="Materiale Logistico">Materiale Logistico</option>
+            <option value="Altro">Altro</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-3">
+          <i class="fas fa-wrench text-gray-600"></i>
+          <select id="filtroStato" onchange="caricaAttrezzature()" class="border rounded p-2 text-sm flex-1">
+            <option value="">Tutti gli stati</option>
+            <option value="Operativo">Operativo</option>
+            <option value="In Manutenzione">In Manutenzione</option>
+            <option value="Guasto">Guasto</option>
+            <option value="Dismesso">Dismesso</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-3">
+          <i class="fas fa-calendar text-gray-600"></i>
+          <button onclick="toggleFiltro60gg()" id="btn60gg" class="border rounded p-2 text-sm flex-1 text-left hover:bg-gray-50">
+            Scadono entro 60gg
+          </button>
+        </div>
+        <div class="flex items-center gap-3">
+          <i class="fas fa-search text-gray-600"></i>
+          <input type="text" id="filtroRicerca" oninput="caricaAttrezzature()" placeholder="Cerca modello/seriale..." class="border rounded p-2 text-sm flex-1">
+        </div>
+      </div>
+    </div>
+
+    <div id="listaAttrezzature" class="space-y-3"></div>
+  </div>
+
+  <div id="modalQR" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-6 max-w-sm w-full">
+      <h3 class="font-bold text-lg mb-4">QR Code Attrezzatura</h3>
+      <div id="qrcode" class="flex justify-center mb-4"></div>
+      <p class="text-xs text-gray-600 text-center mb-4" id="testoQR"></p>
+      <div class="flex gap-2">
+        <button onclick="stampaQR()" class="flex-1 bg-blue-600 text-white py-2 rounded text-sm"><i class="fas fa-print"></i> Stampa</button>
+        <button onclick="chiudiModalQR()" class="flex-1 bg-gray-600 text-white py-2 rounded text-sm">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sottocategorie = {
+      'Radio': ['Portatile VHF', 'Portatile UHF', 'Veicolare', 'Base fissa', 'Ponte ripetitore'],
+      'Motosega': ['Piccola', 'Media', 'Grande'],
+      'DPI': ['Casco con visiera e cuffie', 'Imbragatura', 'Guanti', 'Stivali', 'Gilet AV'],
+      'Antenne': ['Dipolo', 'Direttiva', 'Collineare', 'Veicolare'],
+      'Materiale Elettrico': ['Prolunga', 'Adattatore', 'Sottoquadro', 'Generatore', 'Plafoniera', 'Faro', 'Torcia', 'Torre faro', 'Altro'],
+      'Materiale Idro': ['Idrovora', 'Motopompa', 'Elettropompa', 'Accessorio', 'Altro'],
+      'Materiale Logistico': ['Tenda', 'Brandina', 'Gazebo', 'Transenne', 'Altro'],
+      'Altro': ['Altro']
+    };
+
+    let editId = null;
+    let filtro60ggAttivo = false;
+
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+      document.getElementById('overlay').classList.toggle('hidden');
+    }
+
+         function mostraForm(id = null) {
+      const form = document.getElementById('formAttrezzatura');
+      const btn = document.getElementById('btnToggleForm');
+      const btnPDF = document.getElementById('btnExportPDF');
+      const boxFiltri = document.getElementById('boxFiltri');
+      const lista = document.getElementById('listaAttrezzature');
+
+      form.classList.remove('hidden');
+      document.querySelector('#formAttrezzatura form').reset();
+      document.getElementById('previewFoto').classList.add('hidden');
+      editId = id;
+
+      boxFiltri.classList.add('hidden');
+      lista.classList.add('hidden');
+      if (btnPDF) btnPDF.classList.add('hidden'); // nasconde solo PDF
+
+      btn.innerHTML = '<i class="fas fa-arrow-left"></i> Indietro';
+      btn.classList.remove('bg-orange-500', 'hover:bg-orange-600');
+      btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+      btn.onclick = nascondiForm;
+
+      if (id) {
+        document.getElementById('titoloForm').textContent = 'Modifica Attrezzatura';
+        const attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+        const a = attrezzature.find(x => x.id === id);
+        if (a) {
+          document.getElementById('idAttrezzatura').value = a.id;
+          document.getElementById('categoria').value = a.categoria;
+          aggiornaSottocategoria();
+          setTimeout(() => {
+            document.getElementById('sottocategoria').value = a.sottocategoria;
+          }, 50);
+          document.getElementById('modello').value = a.modello || '';
+          document.getElementById('seriale').value = a.seriale || '';
+          document.getElementById('quantita').value = a.quantita || 1;
+          document.getElementById('disponibili').value = a.disponibili || a.quantita || 1;
+          document.getElementById('idRadio').value = a.idRadio || '';
+          document.getElementById('identificativo').value = a.identificativo || '';
+          document.getElementById('frequenza').value = a.frequenza || '';
+          document.getElementById('descrizioneDPI').value = a.descrizioneDPI || '';
+          document.getElementById('revisione').value = a.revisione || '';
+          document.getElementById('stato').value = a.stato;
+          document.getElementById('note').value = a.note || '';
+          if (a.foto) {
+            document.getElementById('previewFoto').src = a.foto;
+            document.getElementById('previewFoto').classList.remove('hidden');
+          }
+          mostraCampiSpecifici();
+        }
+      } else {
+        document.getElementById('titoloForm').textContent = 'Nuova Attrezzatura';
+        document.getElementById('idAttrezzatura').value = '';
+        nascondiCampiSpecifici();
+      }
+      window.scrollTo(0, 0);
+    }
+
+         function nascondiForm() {
+      const form = document.getElementById('formAttrezzatura');
+      const btn = document.getElementById('btnToggleForm');
+      const btnPDF = document.getElementById('btnExportPDF');
+      const boxFiltri = document.getElementById('boxFiltri');
+      const lista = document.getElementById('listaAttrezzature');
+
+      form.classList.add('hidden');
+      document.querySelector('#formAttrezzatura form').reset();
+      document.getElementById('sottocategoria').innerHTML = '<option value="">Seleziona prima la categoria</option>';
+      document.getElementById('previewFoto').classList.add('hidden');
+      nascondiCampiSpecifici();
+      editId = null;
+
+      boxFiltri.classList.remove('hidden');
+      lista.classList.remove('hidden');
+      if (btnPDF) btnPDF.classList.remove('hidden'); // lo fa riapparire
+
+      btn.innerHTML = '<i class="fas fa-plus"></i> Nuova Attrezzatura';
+      btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+      btn.classList.add('bg-orange-500', 'hover:bg-orange-600');
+      btn.onclick = () => mostraForm();
+    }
+
+    function mostraCampiSpecifici() {
+      const cat = document.getElementById('categoria').value;
+      nascondiCampiSpecifici();
+      if (cat === 'Radio') {
+        document.getElementById('campoIdRadio').classList.remove('hidden');
+        document.getElementById('campoIdentificativo').classList.remove('hidden');
+        document.getElementById('campoFrequenza').classList.remove('hidden');
+        document.getElementById('campoSeriale').classList.remove('hidden');
+      } else if (cat === 'DPI') {
+        document.getElementById('campoDescrizioneDPI').classList.remove('hidden');
+        document.getElementById('campoQuantita').classList.remove('hidden');
+        document.getElementById('campoDisponibili').classList.remove('hidden');
+        document.getElementById('campoSeriale').classList.add('hidden');
+      } else if (cat === 'Motosega') {
+        document.getElementById('campoRevisione').classList.remove('hidden');
+        document.getElementById('campoSeriale').classList.remove('hidden');
+      } else {
+        document.getElementById('campoSeriale').classList.remove('hidden');
+      }
+    }
+
+    function nascondiCampiSpecifici() {
+      document.getElementById('campoIdRadio').classList.add('hidden');
+      document.getElementById('campoIdentificativo').classList.add('hidden');
+      document.getElementById('campoFrequenza').classList.add('hidden');
+      document.getElementById('campoDescrizioneDPI').classList.add('hidden');
+      document.getElementById('campoRevisione').classList.add('hidden');
+      document.getElementById('campoQuantita').classList.add('hidden');
+      document.getElementById('campoDisponibili').classList.add('hidden');
+      document.getElementById('campoSeriale').classList.remove('hidden');
+    }
+
+    function previewFoto(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          document.getElementById('previewFoto').src = ev.target.result;
+          document.getElementById('previewFoto').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function salvaAttrezzatura(e) {
+      e.preventDefault();
+      const attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+      const id = editId || Date.now();
+
+      const fotoInput = document.getElementById('foto');
+      let foto = document.getElementById('previewFoto').src;
+      if (fotoInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          foto = ev.target.result;
+          salvaDati(id, attrezzature, foto);
+        };
+        reader.readAsDataURL(fotoInput.files[0]);
+      } else {
+        salvaDati(id, attrezzature, foto &&!foto.includes('hidden')? foto : null);
+      }
+    }
+
+    function salvaDati(id, attrezzature, foto) {
+      const cat = document.getElementById('categoria').value;
+      const nuova = {
+        id: id,
+        categoria: cat,
+        sottocategoria: document.getElementById('sottocategoria').value,
+        modello: document.getElementById('modello').value,
+        seriale: cat === 'DPI'? null : document.getElementById('seriale').value,
+        quantita: cat === 'DPI'? parseInt(document.getElementById('quantita').value) || 1 : null,
+        disponibili: cat === 'DPI'? parseInt(document.getElementById('disponibili').value) || 1 : null,
+        idRadio: document.getElementById('idRadio').value,
+        identificativo: document.getElementById('identificativo').value,
+        frequenza: document.getElementById('frequenza').value,
+        descrizioneDPI: document.getElementById('descrizioneDPI').value,
+        revisione: document.getElementById('revisione').value,
+        stato: document.getElementById('stato').value,
+        note: document.getElementById('note').value,
+        foto: foto
+      };
+
+      if (editId) {
+        const index = attrezzature.findIndex(a => a.id === editId);
+        attrezzature[index] = nuova;
+      } else {
+        attrezzature.push(nuova);
+      }
+
+      localStorage.setItem('attrezzature', JSON.stringify(attrezzature));
+      nascondiForm();
+      caricaAttrezzature();
+    }
+
+    function eliminaAttrezzatura(id) {
+      if (!confirm('Eliminare questa attrezzatura?')) return;
+      let attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+      attrezzature = attrezzature.filter(a => a.id!== id);
+      localStorage.setItem('attrezzature', JSON.stringify(attrezzature));
+      caricaAttrezzature();
+    }
+
+    function calcolaStatoScadenza(data) {
+      if (!data) return 'N/A';
+      const oggi = new Date();
+      oggi.setHours(0,0,0);
+      const scad = new Date(data);
+      scad.setHours(0,0,0);
+      const diff = (scad - oggi) / (1000 * 60 * 60 * 24);
+      if (diff < 0) return 'Scaduto';
+      if (diff <= 30) return 'In scadenza';
+      return 'OK';
+    }
+
+    function controllaScadenzeImminenti(attrezzature) {
+      let inScadenza = 0;
+      let scadute = 0;
+
+      attrezzature.forEach(a => {
+        if (a.revisione) {
+          const stato = calcolaStatoScadenza(a.revisione);
+          if (stato === 'Scaduto') scadute++;
+          if (stato === 'In scadenza') inScadenza++;
+        }
+      });
+
+      const alertDiv = document.getElementById('alertScadenze');
+      const testoDiv = document.getElementById('testoAlertScadenze');
+
+      if (scadute > 0 || inScadenza > 0) {
+        alertDiv.classList.remove('hidden');
+        let msg = [];
+        if (scadute > 0) msg.push(`${scadute} revisioni scadute`);
+        if (inScadenza > 0) msg.push(`${inScadenza} in scadenza entro 30 giorni`);
+        testoDiv.textContent = msg.join(' • ') + '. Verifica le attrezzature evidenziate.';
+      } else {
+        alertDiv.classList.add('hidden');
+      }
+    }
+
+    function toggleFiltro60gg() {
+      filtro60ggAttivo =!filtro60ggAttivo;
+      const btn = document.getElementById('btn60gg');
+      if (filtro60ggAttivo) {
+        btn.classList.add('bg-blue-100', 'text-blue-800');
+      } else {
+        btn.classList.remove('bg-blue-100', 'text-blue-800');
+      }
+      caricaAttrezzature();
+    }
+
+    function caricaAttrezzature() {
+      let attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+      const filtroCat = document.getElementById('filtroCategoria').value;
+      const filtroStato = document.getElementById('filtroStato').value;
+      const filtroRicerca = document.getElementById('filtroRicerca').value.toLowerCase();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const highlightId = urlParams.get('id');
+
+      if (filtroCat) attrezzature = attrezzature.filter(a => a.categoria === filtroCat);
+      if (filtroStato) attrezzature = attrezzature.filter(a => a.stato === filtroStato);
+      if (filtroRicerca) {
+        attrezzature = attrezzature.filter(a =>
+          a.modello.toLowerCase().includes(filtroRicerca) ||
+          (a.seriale && a.seriale.toLowerCase().includes(filtroRicerca)) ||
+          (a.identificativo && a.identificativo.toLowerCase().includes(filtroRicerca))
+        );
+      }
+
+      if (filtro60ggAttivo) {
+        const oggi = new Date();
+        const limite = new Date();
+        limite.setDate(oggi.getDate() + 60);
+        attrezzature = attrezzature.filter(a => {
+          if (!a.revisione) return false;
+          const scad = new Date(a.revisione);
+          return scad >= oggi && scad <= limite;
+        });
+      }
+
+      const lista = document.getElementById('listaAttrezzature');
+      if (attrezzature.length === 0) {
+        lista.innerHTML = `<div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+          <i class="fas fa-walkie-talkie text-5xl mb-3 text-gray-300"></i>
+          <p class="text-lg">Nessuna attrezzatura trovata</p>
+        </div>`;
+        controllaScadenzeImminenti([]);
+        return;
+      }
+
+      lista.innerHTML = attrezzature.map(a => {
+        const coloreStato = a.stato === 'Operativo'? 'bg-green-100 text-green-800' :
+                           a.stato === 'In Manutenzione'? 'bg-yellow-100 text-yellow-800' :
+                           a.stato === 'Guasto'? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800';
+
+        const statoRev = calcolaStatoScadenza(a.revisione);
+        const colRev = statoRev === 'Scaduto'? 'text-red-600 font-bold' : statoRev === 'In scadenza'? 'text-orange-600 font-bold' : 'text-gray-600';
+
+        const icona = a.categoria === 'Radio'? 'fa-walkie-talkie' :
+                      a.categoria === 'Motosega'? 'fa-tree' :
+                      a.categoria === 'DPI'? 'fa-helmet-safety' :
+                      a.categoria === 'Antenne'? 'fa-broadcast-tower' : 'fa-box';
+
+        const idDisplay = a.categoria === 'Radio'? (a.identificativo || a.idRadio || a.seriale || '-') : (a.seriale || '-');
+        const dettaglio = a.categoria === 'DPI'? (a.descrizioneDPI || a.sottocategoria) : a.sottocategoria;
+        const evidenzia = highlightId && a.id == highlightId? 'ring-4 ring-blue-400' : '';
+
+        return `
+          <div class="bg-white rounded-lg shadow p-4 ${evidenzia}" id="attr-${a.id}">
+            <div class="flex flex-col lg:flex-row gap-4">
+              ${a.foto? `<img src="${a.foto}" class="w-full lg:w-32 h-32 object-cover rounded">` : ''}
+              <div class="flex-1">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-3">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                      <i class="fas ${icona} text-blue-600"></i>
+                      <h3 class="font-bold text-lg">${a.categoria} - ${dettaglio}</h3>
+                      <span class="text-xs px-2 py-1 rounded ${coloreStato}">${a.stato}</span>
+                    </div>
+                    <p class="text-sm text-gray-600">${a.modello}</p>
+                  </div>
+                  <div class="flex gap-2">
+                    <button onclick="mostraQR(${a.id})" class="text-purple-600 hover:text-purple-800 bg-purple-50 px-3 py-1 rounded" title="QR Code">
+                      <i class="fas fa-qrcode"></i>
+                    </button>
+                    <button onclick="mostraForm(${a.id})" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1 rounded">
+                      <i class="fas fa-edit"></i> Modifica
+                    </button>
+                    <button onclick="eliminaAttrezzatura(${a.id})" class="text-red-600 hover:text-red-800 bg-red-50 px-3 py-1 rounded">
+                      <i class="fas fa-trash"></i> Elimina
+                    </button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 text-sm border-t pt-3">
+                  <div>
+                    <p class="text-gray-500 text-xs mb-1">${a.categoria === 'DPI'? 'Quantità' : 'ID/Seriale'}</p>
+                    <p class="font-semibold"><i class="fas ${a.categoria === 'DPI'? 'fa-boxes' : 'fa-barcode'} text-gray-400 mr-1"></i> ${a.categoria === 'DPI'? `${a.quantita || 1} (${a.disponibili || a.quantita || 1} disp.)` : idDisplay}</p>
+                  </div>
+                  ${a.frequenza? `
+                  <div>
+                    <p class="text-gray-500 text-xs mb-1">Frequenza</p>
+                    <p class="font-semibold"><i class="fas fa-signal text-gray-400 mr-1"></i> ${a.frequenza}</p>
+                  </div>
+                  ` : ''}
+                  ${a.revisione? `
+                  <div>
+                    <p class="text-gray-500 text-xs mb-1">Revisione</p>
+                    <p class="${colRev}"><i class="fas fa-calendar-check mr-1"></i> ${new Date(a.revisione).toLocaleDateString('it-IT')} ${statoRev!== 'OK'? `(${statoRev})` : ''}</p>
+                  </div>
+                   ` : ''}
+                </div>
+                ${a.note? `<div class="border-t mt-3 pt-2"><p class="text-xs text-gray-600"><i class="fas fa-sticky-note mr-1"></i> ${a.note}</p></div>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      controllaScadenzeImminenti(attrezzature);
+    }
+
+    function mostraQR(id) {
+      const attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+      const a = attrezzature.find(x => x.id === id);
+      if (!a) return;
+
+      const url = `${window.location.origin}${window.location.pathname}?id=${a.id}`;
+      const testo = `${a.categoria} - ${a.modello} - ${a.categoria === 'DPI'? (a.descrizioneDPI || a.sottocategoria) : a.sottocategoria}`;
+
+      document.getElementById('modalQR').classList.remove('hidden');
+      document.getElementById('testoQR').textContent = testo;
+      document.getElementById('qrcode').innerHTML = '';
+
+      new QRCode(document.getElementById('qrcode'), {
+        text: url,
+        width: 200,
+        height: 200
+      });
+    }
+
+    function chiudiModalQR() {
+      document.getElementById('modalQR').classList.add('hidden');
+      document.getElementById('qrcode').innerHTML = '';
+    }
+
+    function stampaQR() {
+      const contenuto = document.getElementById('modalQR').querySelector('.bg-white').innerHTML;
+      const finestra = window.open('', '_blank');
+      finestra.document.write(`
+        <html>
+          <head><title>Stampa QR Code</title></head>
+          <body onload="window.print(); window.close();" style="text-align:center; padding:20px;">
+            ${contenuto}
+          </body>
+        </html>
+      `);
+      finestra.document.close();
+    }
+
+    function esportaInventarioPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      let attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+      const filtroCat = document.getElementById('filtroCategoria').value;
+      const filtroStato = document.getElementById('filtroStato').value;
+
+      if (filtroCat) attrezzature = attrezzature.filter(a => a.categoria === filtroCat);
+      if (filtroStato) attrezzature = attrezzature.filter(a => a.stato === filtroStato);
+
+      doc.setFontSize(18);
+      doc.text('Inventario Attrezzature', 14, 15);
+      doc.setFontSize(10);
+      doc.text('Radio C.B. Lunigiana - Protezione Civile', 14, 22);
+      doc.text(`Data: ${new Date().toLocaleDateString('it-IT')}`, 14, 28);
+      if (filtroCat) doc.text(`Filtro Categoria: ${filtroCat}`, 14, 34);
+      if (filtroStato) doc.text(`Filtro Stato: ${filtroStato}`, 14, filtroCat? 40 : 34);
+
+      const datiTabella = attrezzature.map(a => [
+        a.categoria,
+        a.categoria === 'DPI'? (a.descrizioneDPI || a.sottocategoria) : a.sottocategoria,
+        a.modello,
+        a.categoria === 'DPI'? `${a.quantita || 1} (${a.disponibili || a.quantita || 1} disp.)` : (a.categoria === 'Radio'? (a.identificativo || a.idRadio || a.seriale || '-') : (a.seriale || '-')),
+        a.categoria === 'Radio'? (a.frequenza || '-') : '-',
+        a.revisione? new Date(a.revisione).toLocaleDateString('it-IT') : '-',
+        a.stato
+      ]);
+
+      doc.autoTable({
+        startY: (filtroCat || filtroStato)? 46 : 34,
+        head: [['Categoria', 'Tipo', 'Modello', 'ID/Q.tà', 'Freq', 'Revisione', 'Stato']],
+        body: datiTabella,
+        styles: { fontSize: 7 },
+        headStyles: { fillColor: [59, 130, 246] },
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 35 },
+          3: { cellWidth: 25 },
+          4: { cellWidth: 15 },
+          5: { cellWidth: 22 },
+          6: { cellWidth: 25 }
+        }
+      });
+
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Pagina ${i} di ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
+      }
+
+      doc.save(`inventario_attrezzature_${new Date().toISOString().split('T')[0]}.pdf`);
+    }
+
+    function scaricaBackup() {
+      const dati = {
+        volontari: JSON.parse(localStorage.getItem('volontari') || '[]'),
+        corsi: JSON.parse(localStorage.getItem('corsi') || '[]'),
+        responsabili: JSON.parse(localStorage.getItem('responsabili') || '[]'),
+        mezzi: JSON.parse(localStorage.getItem('mezzi') || '[]'),
+        attrezzature: JSON.parse(localStorage.getItem('attrezzature') || '[]'),
+        servizi: JSON.parse(localStorage.getItem('servizi') || '[]'),
+        dataBackup: new Date().toISOString(),
+        versione: '1.0'
+      };
+      const blob = new Blob([JSON.stringify(dati, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_protciv_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      alert('Backup scaricato con successo!');
+    }
+
+    function caricaBackup(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const dati = JSON.parse(event.target.result);
+          if (!confirm('ATTENZIONE: Questa operazione sovrascrive TUTTI i dati attuali.\n\nSei sicuro?')) {
+            e.target.value = '';
+            return;
+          }
+          localStorage.setItem('volontari', JSON.stringify(dati.volontari || []));
+          localStorage.setItem('corsi', JSON.stringify(dati.corsi || []));
+          localStorage.setItem('responsabili', JSON.stringify(dati.responsabili || []));
+          localStorage.setItem('mezzi', JSON.stringify(dati.mezzi || []));
+          localStorage.setItem('attrezzature', JSON.stringify(dati.attrezzature || []));
+          localStorage.setItem('servizi', JSON.stringify(dati.servizi || []));
+          alert('Backup ripristinato! Ricarico...');
+          location.reload();
+        } catch (err) {
+          alert('File backup non valido');
+          e.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const highlightId = urlParams.get('id');
+      if (highlightId) {
+        setTimeout(() => {
+          const el = document.getElementById(`attr-${highlightId}`);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 500);
+      }
+    };
+
+    caricaAttrezzature();
+  </script>
+</body>
+</html>
