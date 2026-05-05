@@ -1,0 +1,47 @@
+function mostraFormNuovo() {
+      const form = document.getElementById('formNuovoCorso');
+      const btn = document.getElementById('btnToggleForm');
+      const boxBottoni = document.getElementById('boxBottoni');
+      
+      // Mostra il form e resetta i dati
+      form.classList.remove('hidden');
+      document.getElementById('formCorso').reset();
+      document.getElementById('titoloForm').textContent = 'Nuovo Corso';
+      partecipantiTemp = [];
+      editId = null;
+      renderPartecipantiTemp();
+      
+      // Nasconde filtri e lista corsi
+      document.getElementById('boxFiltri').classList.add('hidden');
+      document.getElementById('listaCorsiContainer').classList.add('hidden');
+
+      // MODIFICA: Nasconde tutti i pulsanti extra (Esportazioni/Import)
+      const extraButtons = boxBottoni.querySelectorAll('button:not(#btnToggleForm), label');
+      extraButtons.forEach(el => el.classList.add('hidden'));
+
+      // MODIFICA: Trasforma il tasto in "Indietro" con colore blue-800
+      btn.innerHTML = '<i class="fas fa-arrow-left"></i> Indietro';
+      btn.className = "text-blue-800 hover:text-blue-900 font-semibold flex items-center gap-2 text-sm transition-colors";
+      btn.onclick = annullaForm;
+      
+      window.scrollTo(0,0);
+    }
+
+    function annullaForm() {
+      const form = document.getElementById('formNuovoCorso');
+      const btn = document.getElementById('btnToggleForm');
+      const boxBottoni = document.getElementById('boxBottoni');
+
+      form.classList.add('hidden');
+      document.getElementById('boxFiltri').classList.remove('hidden');
+      document.getElementById('listaCorsiContainer').classList.remove('hidden');
+
+      // Ripristina tutti i pulsanti (Esportazioni/Import)
+      const extraButtons = boxBottoni.querySelectorAll('button, label');
+      extraButtons.forEach(el => el.classList.remove('hidden'));
+
+      // Ripristina il tasto "Nuovo Corso" originale (Rosso)
+      btn.innerHTML = '<i class="fas fa-plus"></i> Nuovo Corso';
+      btn.className = "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm transition-colors";
+      btn.onclick = mostraFormNuovo;
+    }
