@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Radio C.B. Lunigiana</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+    :root {--blu:#1e3a8a;--grigio:#f1f5f9;--bordo:#e2e8f0;--testo:#334155;--verde:#10b981;--rosso:#ef4444;--arancio:#f59e0b;--viola:#8b5cf6;--giallo:#fbbf24;}
+    body {background:var(--grigio);color:var(--testo);display:flex;min-height:100vh;}
+    
+    /* SIDEBAR ORIGINALE CON LOGO */
+    .sidebar {width:260px;background:var(--blu);color:#fff;position:fixed;height:100vh;overflow-y:auto;z-index:100;transition:transform 0.3s;}
+    .logo {padding:25px 20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1);}
+    .logo img {width:70px;height:70px;border-radius:50%;margin-bottom:10px;object-fit:cover;}
+    .logo h2 {font-size:18px;font-weight:600;}
+    .menu {list-style:none;padding:20px 0;}
+    .menu li a {display:flex;align-items:center;padding:14px 25px;color:rgba(255,255,255,.8);text-decoration:none;font-size:15px;transition:all.3s;}
+    .menu li a:hover,.menu li a.active {background:rgba(255,255,255,.1);color:#fff;border-left:3px solid #fff;}
+    .menu li a i {margin-right:12px;width:20px;text-align:center;}
+    .menu-separatore {height:1px;background:rgba(255,255,255,.1);margin:15px 25px;}
+    
+    /* MAIN SENZA HEADER */
+    .main {flex:1;margin-left:260px;padding:25px;transition:margin-left 0.3s;}
+    .top-bar {margin-bottom:25px;}
+    .top-bar h1 {font-size:26px;color:var(--blu);margin-bottom:3px;}
+    .top-bar p {font-size:13px;color:#64748b;}
+    
+    /* STATS GRID */
+    .stats-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin-bottom:25px;}
+    .card-stat {background:#fff;padding:15px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);border-left:4px solid var(--blu);display:flex;justify-content:space-between;align-items:center;transition:all.3s;cursor:pointer;text-decoration:none;color:inherit;}
+    .card-stat:hover {transform:translateY(-2px);box-shadow:0 3px 8px rgba(0,0,0,.08);}
+    .card-stat:nth-child(2) {border-left-color:var(--rosso);}
+    .card-stat:nth-child(3) {border-left-color:var(--verde);}
+    .card-stat:nth-child(4) {border-left-color:var(--viola);}
+    .card-stat:nth-child(5) {border-left-color:var(--arancio);}
+    .card-stat:nth-child(6) {border-left-color:var(--rosso);}
+    .card-stat:nth-child(7) {border-left-color:var(--giallo);}
+    .card-info h3 {font-size:13px;font-weight:500;color:#64748b;margin-bottom:6px;}
+    .card-info p {font-size:26px;font-weight:700;color:var(--testo);}
+    .card-icon {font-size:30px;opacity:.3;}
+    .card-icon.blu {color:var(--blu);}
+    .card-icon.rosso {color:var(--rosso);}
+    .card-icon.verde {color:var(--verde);}
+    .card-icon.viola {color:var(--viola);}
+    .card-icon.arancio {color:var(--arancio);}
+    .card-icon.giallo {color:var(--giallo);}
+    
+    /* SEZIONI */
+    .sezione-box {background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;margin-bottom:20px;}
+    .sezione-header {padding:16px 20px;border-bottom:1px solid var(--bordo);display:flex;justify-content:space-between;align-items:center;}
+    .sezione-header h3 {font-size:16px;font-weight:600;color:var(--testo);display:flex;align-items:center;gap:8px;}
+    .sezione-header a {color:var(--viola);text-decoration:none;font-size:13px;font-weight:500;}
+    .sezione-body {padding:12px 20px;}
+    .lista-item {padding:12px 0;border-bottom:1px solid var(--bordo);display:flex;justify-content:space-between;align-items:center;}
+    .lista-item:last-child {border-bottom:none;}
+    .lista-sx h4 {font-size:14px;font-weight:600;margin-bottom:2px;}
+    .lista-sx p {font-size:12px;color:#64748b;}
+    .badge {padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;display:inline-block;}
+    .badge-viola {background:#ede9fe;color:#5b21b6;}
+    .vuoto {padding:30px;text-align:center;color:#94a3b8;font-size:13px;}
+    
+    /* RIEPILOGO SISTEMATO - DIV CHIUSI BENE */
+    .riepilogo-riga {display:flex;justify-content:space-around;align-items:center;gap:20px;padding:15px 0;flex-wrap:wrap;}
+    .riepilogo-item {display:flex;align-items:center;gap:12px;}
+    .riepilogo-item i {font-size:26px;color:var(--blu);opacity:.6;}
+    .riepilogo-item div {text-align:left;}
+    .riepilogo-item div h4 {font-size:26px;font-weight:700;color:var(--testo);line-height:1;}
+    .riepilogo-item div p {font-size:12px;color:#64748b;margin-top:4px;}
+    
+    /* HAMBURGER MOBILE */
+    .hamburger {display:none;position:fixed;top:15px;left:15px;background:var(--blu);color:#fff;border:none;padding:10px 12px;border-radius:8px;font-size:20px;z-index:101;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+    .overlay {display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:90;}
+    .overlay.active {display:block;}
+    
+    @media(max-width:768px){
+      .hamburger{display:block;}
+      .sidebar{transform:translateX(-100%);}
+      .sidebar.active{transform:translateX(0);}
+      .main{margin-left:0;padding:70px 15px 15px 15px;}
+      .stats-grid{grid-template-columns:repeat(2,1fr);}
+      .riepilogo-riga{justify-content:center;}
+      .riepilogo-item{flex:0 0 45%;justify-content:center;}
+    }
+  </style>
+</head>
+<body>
+  <button class="hamburger" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+  <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+  <!-- SIDEBAR CON LOGO GRANDE -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <img src="https://i.imgur.com/8RvEWed.png" alt="Logo">
+      <h2>ProtCiv Manager</h2>
+    </div>
+    <ul class="menu">
+      <li><a href="index.html" class="active"><i class="fa-solid fa-home"></i> Dashboard</a></li>
+      <li><a href="servizi.html"><i class="fa-solid fa-tasks"></i> Servizi</a></li>
+      <li><a href="volontari.html"><i class="fa-solid fa-users"></i> Volontari</a></li>
+      <li><a href="attestati.html"><i class="fa-solid fa-certificate"></i> Attestati</a></li>
+      <li><a href="corsi.html"><i class="fa-solid fa-graduation-cap"></i> Corsi</a></li>
+      <li><a href="responsabili.html"><i class="fa-solid fa-user-tie"></i> Responsabili</a></li>
+      <li><a href="mezzi.html"><i class="fa-solid fa-truck"></i> Mezzi</a></li>
+      <li><a href="attrezzature.html"><i class="fa-solid fa-walkie-talkie"></i> Attrezzature</a></li>
+      <li><a href="colonna_mobile.html"><i class="fa-solid fa-people-group"></i> Colonna Mobile</a></li>
+      <li><a href="report.html"><i class="fa-solid fa-file-pdf"></i> Report</a></li>
+      <div class="menu-separatore"></div>
+      <li><a href="#" onclick="scaricaBackup()"><i class="fa-solid fa-download"></i> Scarica Backup</a></li>
+      <li><a href="#" onclick="caricaBackup()"><i class="fa-solid fa-upload"></i> Carica Backup</a></li>
+      <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+    </ul>
+  </aside>
+
+  <div class="main">
+    <div class="top-bar">
+      <h1>Gestionale Radio C.B. Lunigiana</h1>
+      <p>Riepilogo operativo</p>
+    </div>
+
+    <div class="stats-grid">
+      <a href="volontari.html" class="card-stat">
+        <div class="card-info">
+          <h3>Volontari Attivi</h3>
+          <p id="totVolontari">0</p>
+        </div>
+        <i class="fa-solid fa-users card-icon blu"></i>
+      </a>
+      <a href="servizi.html" class="card-stat">
+        <div class="card-info">
+          <h3>Servizi Mese</h3>
+          <p id="totServiziMese">0</p>
+        </div>
+        <i class="fa-solid fa-tasks card-icon rosso"></i>
+      </a>
+      <a href="mezzi.html" class="card-stat">
+        <div class="card-info">
+          <h3>Mezzi Operativi</h3>
+          <p id="totMezzi">0</p>
+        </div>
+        <i class="fa-solid fa-truck card-icon verde"></i>
+      </a>
+      <a href="corsi.html" class="card-stat">
+        <div class="card-info">
+          <h3>Corsi Attivi</h3>
+          <p id="totCorsi">0</p>
+        </div>
+        <i class="fa-solid fa-graduation-cap card-icon viola"></i>
+      </a>
+      <a href="attrezzature.html" class="card-stat">
+        <div class="card-info">
+          <h3>Attrezzature</h3>
+          <p id="totAttrezzature">0</p>
+        </div>
+        <i class="fa-solid fa-walkie-talkie card-icon arancio"></i>
+      </a>
+      <a href="servizi.html" class="card-stat">
+        <div class="card-info">
+          <h3>Servizi Oggi</h3>
+          <p id="totServiziOggi">0</p>
+        </div>
+        <i class="fa-solid fa-calendar-day card-icon rosso"></i>
+      </a>
+      <a href="corsi.html" class="card-stat">
+        <div class="card-info">
+          <h3>Corsi in Scadenza</h3>
+          <p id="totCorsiScadenza">0</p>
+        </div>
+        <i class="fa-solid fa-triangle-exclamation card-icon giallo"></i>
+      </a>
+    </div>
+
+    <div class="sezione-box">
+      <div class="sezione-header">
+        <h3><i class="fa-solid fa-people-group" style="color:var(--viola);"></i> Colonna Mobile Nazionale</h3>
+        <a href="colonna_mobile.html">Gestisci →</a>
+      </div>
+      <div class="sezione-body" id="listaCMN"></div>
+    </div>
+
+    <!-- RIEPILOGO CON TUTTI I DIV CHIUSI CORRETTAMENTE -->
+    <div class="sezione-box">
+      <div class="sezione-header">
+        <h3><i class="fa-solid fa-chart-line" style="color:var(--blu);"></i> Riepilogo Mensile</h3>
+      </div>
+      <div class="sezione-body">
+        <div class="riepilogo-riga">
+          <div class="riepilogo-item">
+            <i class="fa-solid fa-calendar-check"></i>
+            <div>
+              <h4 id="riepilogoServizi">0</h4>
+              <p>Servizi Effettuati</p>
+            </div>
+          <div class="riepilogo-item">
+            <i class="fa-solid fa-clock"></i>
+            <div>
+              <h4 id="riepilogoOre">0</h4>
+              <p>Ore Totali</p>
+            </div>
+          <div class="riepilogo-item">
+            <i class="fa-solid fa-users"></i>
+            <div>
+              <h4 id="riepilogoVolontari">0</h4>
+              <p>Volontari Coinvolti</p>
+            </div>
+          </div>
+          <div class="riepilogo-item">
+            <i class="fa-solid fa-route"></i>
+            <div>
+              <h4 id="riepilogoKm">0</h4>
+              <p>Km Percorsi</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <script>
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('active');
+      document.getElementById('overlay').classList.toggle('active');
+    }
+
+    function scaricaBackup() {
+      const dati = {
+        volontari: JSON.parse(localStorage.getItem('volontari') || '[]'),
+        servizi: JSON.parse(localStorage.getItem('servizi') || '[]'),
+        mezzi: JSON.parse(localStorage.getItem('mezzi') || '[]'),
+        corsi: JSON.parse(localStorage.getItem('corsi') || '[]'),
+        attrezzature: JSON.parse(localStorage.getItem('attrezzature') || '[]'),
+        attestati: JSON.parse(localStorage.getItem('attestati') || '[]'),
+        cmn: JSON.parse(localStorage.getItem('cmn') || '[]'),
+        data: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(dati, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_protciv_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+    }
+
+    function caricaBackup() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = evt => {
+          try {
+            const dati = JSON.parse(evt.target.result);
+            if (confirm('Caricare il backup? I dati attuali verranno sovrascritti.')) {
+              Object.keys(dati).forEach(k => {
+                if (k !== 'data') localStorage.setItem(k, JSON.stringify(dati[k]));
+              });
+              alert('Backup caricato! Ricarico la pagina.');
+              location.reload();
+            }
+          } catch(err) {
+            alert('Errore nel file di backup');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    function logout() {
+      if (confirm('Vuoi davvero uscire?')) {
+        sessionStorage.clear();
+        window.location.href = 'login.html';
+      }
+    }
+
+    function renderStats() {
+      const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+      const servizi = JSON.parse(localStorage.getItem('servizi') || '[]');
+      const mezzi = JSON.parse(localStorage.getItem('mezzi') || '[]');
+      const corsi = JSON.parse(localStorage.getItem('corsi') || '[]');
+      const attrezzature = JSON.parse(localStorage.getItem('attrezzature') || '[]');
+
+      const attivi = volontari.filter(v => v.stato === 'Attivo').length;
+      const mezziOp = mezzi.filter(m => m.stato === 'Operativo').length;
+      
+      const oggi = new Date();
+      oggi.setHours(0,0,0,0);
+      const meseCorrente = oggi.getMonth();
+      const annoCorrente = oggi.getFullYear();
+      
+      const serviziMese = servizi.filter(s => {
+        if (!s.dataInizio) return false;
+        const d = new Date(s.dataInizio);
+        return d.getMonth() === meseCorrente && d.getFullYear() === annoCorrente;
+      });
+
+      const corsiAttivi = corsi.filter(c => {
+        const dataFine = c.data_fine || c.dataFine || c.fine || c.scadenza || c.dataScadenza;
+        if (!dataFine) return true;
+        const fine = new Date(dataFine);
+        if (isNaN(fine.getTime())) return true;
+        fine.setHours(23,59,59,999);
+        return fine >= oggi;
+      }).length;
+
+      const oggiStr = oggi.toISOString().slice(0,10);
+      const serviziOggi = servizi.filter(s => {
+        if (!s.dataInizio) return false;
+        return s.dataInizio.slice(0,10) === oggiStr;
+      }).length;
+
+      const tra30 = new Date(oggi);
+      tra30.setDate(tra30.getDate() + 30);
+      tra30.setHours(23,59,59,999);
+      
+      const corsiInScadenza = corsi.filter(c => {
+        const dataFine = c.data_fine || c.dataFine || c.fine || c.scadenza || c.dataScadenza;
+        if (!dataFine) return false;
+        const fine = new Date(dataFine);
+        if (isNaN(fine.getTime())) return false;
+        fine.setHours(23,59,59,999);
+        return fine >= oggi && fine <= tra30;
+      }).length;
+
+      document.getElementById('totVolontari').textContent = attivi;
+      document.getElementById('totServiziMese').textContent = serviziMese.length;
+      document.getElementById('totMezzi').textContent = mezziOp;
+      document.getElementById('totCorsi').textContent = corsiAttivi;
+      document.getElementById('totAttrezzature').textContent = attrezzature.length;
+      document.getElementById('totServiziOggi').textContent = serviziOggi;
+      document.getElementById('totCorsiScadenza').textContent = corsiInScadenza;
+
+      document.getElementById('riepilogoServizi').textContent = serviziMese.length;
+      
+      const oreTotali = serviziMese.reduce((acc, s) => acc + (parseFloat(s.ore) || 0), 0);
+      document.getElementById('riepilogoOre').textContent = Math.round(oreTotali);
+      
+      const volontariUnici = new Set();
+      serviziMese.forEach(s => {
+        if (s.volontari && Array.isArray(s.volontari)) {
+          s.volontari.forEach(v => {
+            volontariUnici.add(typeof v === 'object' ? v.id : v);
+          });
+        }
+      });
+      document.getElementById('riepilogoVolontari').textContent = volontariUnici.size;
+      
+      const kmTotali = serviziMese.reduce((acc, s) => acc + (parseFloat(s.km) || 0), 0);
+      document.getElementById('riepilogoKm').textContent = Math.round(kmTotali);
+    }
+
+    function renderCMN() {
+      const cmn = JSON.parse(localStorage.getItem('cmn') || '[]');
+      const volontari = JSON.parse(localStorage.getItem('volontari') || '[]');
+      const box = document.getElementById('listaCMN');
+      const oggi = new Date().toISOString().slice(0,10);
+      
+      const lista = cmn.filter(d => d.al >= oggi).slice(0,3);
+
+      if (lista.length === 0) {
+        box.innerHTML = '<div class="vuoto">Nessuna disponibilità attiva</div>';
+        return;
+      }
+
+      box.innerHTML = lista.map(d => {
+        const v = volontari.find(x => parseInt(x.id) === parseInt(d.volontario_id));
+        return `
+          <div class="lista-item">
+            <div class="lista-sx">
+              <h4>${v? v.nome + ' ' + v.cognome : 'Volontario N/D'}</h4>
+              <p>Team: ${d.team}</p>
+            </div>
+            <span class="badge badge-viola">fino al ${d.al.split('-').reverse().join('/')}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      renderStats();
+      renderCMN();
+    });
+  </script>
+</body>
+</html>
