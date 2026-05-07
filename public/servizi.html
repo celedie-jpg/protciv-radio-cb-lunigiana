@@ -219,7 +219,7 @@
     </div>
   </div>
 
-/<script>/
+<script>
 let filtroAttuale = 'tutti';
 let tipoTurniAttivo = 'Unico';
 
@@ -589,7 +589,7 @@ const dataFormattata = dataInizio.toLocaleDateString('it-IT', {
 const oraInizio = servizio.ora || dataInizio.toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'});
 const oraFine = servizio.ora_fine || '';
 
-const linkDettaglio = https://protciv-lunigiana.web.app/servizio-dettaglio.html?id=1777826271411&auto_read=true;
+const linkDettaglio = `https://protciv-lunigiana.web.app/servizio-dettaglio.html?id=1777826271411&auto_read=true`;
 
 const messaggio = `🔔 *NUOVO SERVIZIO PROGRAMMATO*\n\n` +
   `📋 *${servizio.titolo}*\n` +
@@ -929,8 +929,7 @@ function esportaPDFRadio(id) {
   doc.setFontSize(8);
   doc.text(`Stampato il ${dataStampa} - Radio C.B. Lunigiana`, 105, 285, { align: 'center' });
 
- const dataFormattata = new Date(s.dataInizio).toLocaleDateString('it-IT').split('/').join('-');
- const nomeFile = `Assegnazione_Radio_${s.titolo.replace(/[^a-z0-9]/gi, '_')}_${dataFormattata}.pdf`;
+  const nomeFile = `Assegnazione_Radio_${s.titolo.replace(/[^a-z0-9]/gi, '_')}_${new Date(s.dataInizio).toLocaleDateString('it-IT').replace(/\//g, '-')}.pdf`;
   doc.save(nomeFile);
 }
 </script>
