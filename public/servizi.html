@@ -929,7 +929,8 @@ function esportaPDFRadio(id) {
   doc.setFontSize(8);
   doc.text(`Stampato il ${dataStampa} - Radio C.B. Lunigiana`, 105, 285, { align: 'center' });
 
-  const nomeFile = `Assegnazione_Radio_${s.titolo.replace(/[^a-z0-9]/gi, '_')}_${new Date(s.dataInizio).toLocaleDateString('it-IT').split('/').join('-')}.pdf`;
+ const dataFormattata = new Date(s.dataInizio).toLocaleDateString('it-IT').split('/').join('-');
+ const nomeFile = `Assegnazione_Radio_${s.titolo.replace(/[^a-z0-9]/gi, '_')}_${dataFormattata}.pdf`;
   doc.save(nomeFile);
 }
 </script>
