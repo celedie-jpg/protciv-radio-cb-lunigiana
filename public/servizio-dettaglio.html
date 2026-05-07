@@ -6,11 +6,25 @@
   <title>Dettaglio Servizio - ProtCiv Manager</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    /* Fix sidebar mobile */
+    @media (max-width: 1023px) {
+      #sidebar {
+        transform: translateX(-100%);
+      }
+      #sidebar.open {
+        transform: translateX(0);
+      }
+    }
+  </style>
 </head>
 <body class="bg-gray-100">
   <div class="flex h-screen overflow-hidden">
+    <!-- Overlay mobile -->
+    <div id="overlay" onclick="toggleMenu()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-blue-900 text-white flex flex-col">
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-blue-900 text-white flex flex-col transform transition-transform duration-200 z-40 lg:translate-x-0">
       <div class="p-6 border-b border-blue-800 text-center">
         <img src="logo.png" alt="Logo" class="w-16 h-16 mx-auto mb-2 rounded-full">
         <div class="text-xl font-bold">ProtCiv Manager</div>
@@ -53,52 +67,57 @@
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Header -->
       <header class="bg-white shadow p-4 flex justify-between items-center">
-        <div>
-          <h1 class="text-2xl font-bold text-blue-900">Gestionale Radio C.B. Lunigiana</h1>
-          <p class="text-sm text-gray-600">Dettaglio Servizio</p>
+        <div class="flex items-center gap-3">
+          <button onclick="toggleMenu()" class="lg:hidden text-blue-900 text-2xl">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div>
+            <h1 class="text-xl lg:text-2xl font-bold text-blue-900">Gestionale Radio C.B. Lunigiana</h1>
+            <p class="text-sm text-gray-600">Dettaglio Servizio</p>
+          </div>
         </div>
-        <a href="servizi.html" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
-          <i class="fas fa-arrow-left"></i> Torna ai Servizi
+        <a href="servizi.html" class="bg-gray-600 hover:bg-gray-700 text-white px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base">
+          <i class="fas fa-arrow-left"></i> <span class="hidden sm:inline">Torna ai Servizi</span>
         </a>
       </header>
 
       <!-- Content -->
-      <main class="flex-1 overflow-y-auto p-6">
+      <main class="flex-1 overflow-y-auto p-4 lg:p-6">
         <div class="max-w-4xl mx-auto">
           <!-- Dettaglio Servizio -->
-          <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div class="bg-white rounded-lg shadow-lg p-4 lg:p-6 mb-6">
             <div id="dettaglioServizio"></div>
           </div>
 
           <!-- BOX CONFERMA RICEZIONE -->
-          <div id="boxConferma" class="bg-yellow-50 border-2 border-yellow-400 p-6 rounded-lg mb-6 shadow">
+          <div id="boxConferma" class="bg-yellow-50 border-2 border-yellow-400 p-4 lg:p-6 rounded-lg mb-6 shadow">
             <h3 class="text-lg font-bold text-yellow-900 mb-3">
               <i class="fas fa-bell"></i> Conferma Ricezione Convocazione
             </h3>
             <p class="text-gray-700 mb-4">Conferma di aver preso visione dei dettagli di questo servizio.</p>
-            <button onclick="confermaRicezione()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium">
+            <button onclick="confermaRicezione()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium w-full sm:w-auto">
               <i class="fas fa-check"></i> Confermo di aver letto
             </button>
           </div>
 
-          <!-- BOX CONFERMA PRESENZA SERVIZIO - NUOVO -->
-          <div id="boxConfermaPresenza" class="bg-blue-50 border-2 border-blue-400 p-6 rounded-lg mb-6 shadow">
+          <!-- BOX CONFERMA PRESENZA SERVIZIO -->
+          <div id="boxConfermaPresenza" class="bg-blue-50 border-2 border-blue-400 p-4 lg:p-6 rounded-lg mb-6 shadow">
             <h3 class="text-lg font-bold text-blue-900 mb-3">
               <i class="fas fa-thumbs-up"></i> Conferma Presenza Servizio
             </h3>
             <p class="text-gray-700 mb-4">Conferma che parteciperai a questo servizio.</p>
-            <button onclick="confermaPresenzaServizio()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium">
+            <button onclick="confermaPresenzaServizio()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium w-full sm:w-auto">
               <i class="fas fa-thumbs-up"></i> Confermo che parteciperò
             </button>
           </div>
 
           <!-- BOX FIRMA PRESENZA -->
-          <div id="boxFirma" class="bg-green-50 border-2 border-green-400 p-6 rounded-lg shadow">
+          <div id="boxFirma" class="bg-green-50 border-2 border-green-400 p-4 lg:p-6 rounded-lg shadow">
             <h3 class="text-lg font-bold text-green-900 mb-3">
               <i class="fas fa-map-marker-alt"></i> Firma Presenza sul Posto
             </h3>
             <p class="text-gray-700 mb-4">Quando arrivi sul luogo del servizio, firma la presenza. Verranno registrati ora e GPS.</p>
-            <button onclick="firmaPresenza()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium">
+            <button onclick="firmaPresenza()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium w-full sm:w-auto">
               <i class="fas fa-signature"></i> Firma Presenza
             </button>
             <p class="text-xs text-gray-600 mt-3"><i class="fas fa-info-circle"></i> Assicurati di avere il GPS attivo</p>
@@ -111,6 +130,13 @@
   </div>
 
 <script>
+function toggleMenu() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('hidden');
+}
+
 // Simula utente loggato. Sostituisci con il tuo sistema di login
 if(!localStorage.getItem('utente_id')) {
   localStorage.setItem('utente_id', 'volontario_demo');
@@ -127,7 +153,6 @@ function getAutoRead() {
   return params.get('auto_read') === 'true';
 }
 
-// Struttura unificata: conferme_servizi = { servizioId: { lettura: [], presenza: [], sul_posto: [] } }
 function getConferme() {
   return JSON.parse(localStorage.getItem('conferme_servizi') || '{}');
 }
@@ -150,8 +175,8 @@ function caricaServizio() {
   };
 
   document.getElementById('dettaglioServizio').innerHTML = `
-    <h2 class="text-3xl font-bold mb-6 text-gray-800">${s.titolo}</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <h2 class="text-2xl lg:text-3xl font-bold mb-6 text-gray-800">${s.titolo}</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
       <div class="space-y-3">
         <p class="text-gray-700"><i class="fas fa-calendar text-blue-600 w-5"></i> <strong>Data:</strong> ${s.data}</p>
         <p class="text-gray-700"><i class="fas fa-clock text-blue-600 w-5"></i> <strong>Ora:</strong> ${s.ora}</p>
@@ -160,12 +185,11 @@ function caricaServizio() {
       <div class="space-y-3">
         <p class="text-gray-700"><i class="fas fa-users text-blue-600 w-5"></i> <strong>Team:</strong> ${s.team || 'Tutti'}</p>
         <p class="text-gray-700"><i class="fas fa-info-circle text-blue-600 w-5"></i> <strong>Descrizione:</strong></p>
-        <p class="text-gray-600 bg-gray-50 p-3 rounded">${s.descrizione}</p>
+        <p class="text-gray-600 bg-gray-50 p-3 rounded text-sm lg:text-base">${s.descrizione}</p>
       </div>
     </div>
   `;
 
-  // Se arriva da Telegram con auto_read=true, registra subito la lettura
   if(getAutoRead()) {
     registraLetturaAutomatica();
   }
@@ -199,7 +223,6 @@ function checkStatoUtente() {
   const conferme = getConferme();
   const dati = conferme[servizioId] || { lettura: [], presenza: [], sul_posto: [] };
 
-  // Box Ricezione
   if(dati.lettura.find(c => c.volontario_id === userId)) {
     const c = dati.lettura.find(c => c.volontario_id === userId);
     document.getElementById('boxConferma').innerHTML = `
@@ -214,7 +237,6 @@ function checkStatoUtente() {
     `;
   }
 
-  // Box Conferma Presenza
   if(dati.presenza.find(c => c.volontario_id === userId)) {
     const c = dati.presenza.find(c => c.volontario_id === userId);
     document.getElementById('boxConfermaPresenza').innerHTML = `
@@ -234,7 +256,6 @@ function checkStatoUtente() {
       `Conferma che parteciperai a questo servizio.<br><span class="text-xs text-gray-500">Hanno letto: ${lettureCount} | Confermati: ${presenzeCount}</span>`;
   }
 
-  // Box Firma Presenza
   if(dati.sul_posto.find(p => p.volontario_id === userId)) {
     const p = dati.sul_posto.find(p => p.volontario_id === userId);
     document.getElementById('boxFirma').innerHTML = `
