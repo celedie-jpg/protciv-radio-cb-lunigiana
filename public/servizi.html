@@ -932,6 +932,7 @@ function esportaPDFRadio(id) {
   const nomeFile = `Assegnazione_Radio_${s.titolo.replace(/[^a-z0-9]/gi, '_')}_${new Date(s.dataInizio).toLocaleDateString('it-IT').replace(/\//g, '-')}.pdf`;
   doc.save(nomeFile);
 }
+</script>
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
