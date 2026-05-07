@@ -1,91 +1,54 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - ProtCiv Manager</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <title>Login - Protciv Lunigiana</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-br from-blue-900 to-blue-700 min-h-screen flex items-center justify-center p-4">
-
-  <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-    <div class="text-center mb-8">
-      <img src="https://i.imgur.com/8RvEWed.png" alt="Logo" class="w-20 h-20 mx-auto mb-4 rounded-full object-cover">
-      <h1 class="text-3xl font-bold text-blue-900">ProtCiv Manager</h1>
-      <p class="text-gray-600 mt-2">Radio C.B. Lunigiana</p>
+<body class="bg-slate-900 flex items-center justify-center min-h-screen">
+    <div class="bg-slate-800 p-8 rounded-lg w-96">
+        <h1 class="text-white text-2xl mb-6 text-center">Accesso Riservato</h1>
+        <input id="email" type="email" placeholder="Email" class="w-full p-3 mb-4 rounded bg-slate-700 text-white">
+        <input id="password" type="password" placeholder="Password" class="w-full p-3 mb-4 rounded bg-slate-700 text-white">
+        <button id="bottoneLogin" class="w-full bg-sky-600 hover:bg-sky-700 text-white p-3 rounded">Entra</button>
+        <p id="errore" class="text-red-500 mt-4 text-center h-4"></p>
     </div>
 
-    <form onsubmit="effettuaLogin(event)">
-      <div class="mb-4">
-        <label class="block text-sm font-semibold text-gray-700 mb-2">
-          <i class="fas fa-envelope"></i> Email
-        </label>
-        <input type="email" id="email" required 
-               class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
-               placeholder="Inserisci email">
-      </div>
-
-      <div class="mb-6">
-        <label class="block text-sm font-semibold text-gray-700 mb-2">
-          <i class="fas fa-lock"></i> Password
-        </label>
-        <input type="password" id="password" required 
-               class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
-               placeholder="Inserisci password">
-      </div>
-
-      <button type="submit" 
-              class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-lg transition">
-        <i class="fas fa-sign-in-alt"></i> Accedi
-      </button>
-    </form>
-
-    <div id="messaggioErrore" class="hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-      <i class="fas fa-exclamation-triangle"></i> <span id="testoErrore"></span>
-    </div>
-
-    <div class="mt-6 text-center text-sm text-gray-500">
-      <p>Accesso riservato al personale autorizzato</p>
-    </div>
-  </div>
-
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDOz9WOEhDfrL9_QPFnE9qP7aXrSc7K2r0",
-    authDomain: "protciv-lunigiana.firebaseapp.com",
-    projectId: "protciv-lunigiana",
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  // Se sei già loggato, vai diretto in dashboard
-  onAuthStateChanged(auth, (user) => {
-    if (user) window.location.href = 'index.html';
-  });
-
-  window.effettuaLogin = async (event) => {
-    event.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const msgErrore = document.getElementById('messaggioErrore');
-    const testoErrore = document.getElementById('testoErrore');
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      window.location.href = 'index.html';
-    } catch (error) {
-      testoErrore.textContent = 'Email o password errati';
-      msgErrore.classList.remove('hidden');
-      setTimeout(() => msgErrore.classList.add('hidden'), 3000);
-    }
-  };
-</script>
-
+    <script type="module">
+      // Importo Firebase - versione corretta
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+      import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+      
+      // LA TUA CONFIGURAZIONE - QUELLA CHE MI HAI MANDATO
+      const firebaseConfig = {
+        apiKey: "AIzaSyCEPlRtBwj21c06YljPbqt8kZkUCrY-yDU",
+        authDomain: "protciv-lunigiana.firebaseapp.com",
+        projectId: "protciv-lunigiana",
+        storageBucket: "protciv-lunigiana.firebasestorage.app",
+        messagingSenderId: "1017323230397",
+        appId: "1:1017323230397:web:db463ccc9d02cce5b653d4"
+      };
+      
+      // Avvio Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      
+      // Quando clicchi "Entra"
+      document.getElementById('bottoneLogin').onclick = () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const msgErrore = document.getElementById('errore');
+        msgErrore.textContent = '';
+        
+        signInWithEmailAndPassword(auth, email, password)
+          .then(() => {
+            window.location.href = 'index.html';
+          })
+          .catch((error) => {
+            msgErrore.textContent = 'Email o password errati';
+            console.log(error.code);
+          });
+      };
+    </script>
 </body>
 </html>
